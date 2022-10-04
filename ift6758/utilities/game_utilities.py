@@ -108,11 +108,14 @@ def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:
         Data frame with additional columns for each type of player implied in the play
     """
 
+    if len(plays_df['event'].unique()) != 1:
+        raise ValueError('Play data may only contain one type of play at a time!')
+
     if plays_df['players'].isna().any():
         # If no players for this type of play, do not do anything
         return plays_df
     else:
-        # Here, assume the first row will always have data for players
+        # Here, assume the first row will always have data for players, given that the input data frame only contains one type of play
         distinct_player_types = set([player['playerType'] for player in plays_df['players'].iloc[0]])
 
         # Extract players series into columns of players' names
