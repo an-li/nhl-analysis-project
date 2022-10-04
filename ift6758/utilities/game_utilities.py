@@ -94,7 +94,7 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
 
     # Sort combined play data in increasing dateTime order
     # As players have been extracted, there is no need to keep the column 'players'
-    return combined_plays_df.sort_values(by='dateTime', kind='mergesort').drop(columns=['players'])
+    return combined_plays_df.sort_values(by='dateTime', kind='mergesort').drop(columns=['players']).reset_index(drop=True)
 
 
 def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:
