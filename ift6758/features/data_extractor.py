@@ -7,7 +7,8 @@ from ift6758.utilities.math_utilities import compute_2d_euclidean_distance
 from ift6758.utilities.schedule_utilities import get_game_list_for_date_range
 
 
-def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, event_types: list, columns_to_keep: list):
+def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, event_types: list = [],
+                                  columns_to_keep: list = []) -> pd.DataFrame:
     """
     Extract and cleanup NHL game play-by-play data from start_date to end_date
 
@@ -17,7 +18,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
         event_types: List of event types to filter on
         columns_to_keep: Columns of data frame to keep, except columns related to player types
     Returns:
-        Data frame of cleaned up data between start_date and end_date
+        Data frame of cleaned up data between start_date and end_date, with additional columns
 
     """
 
@@ -57,7 +58,10 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
 
     # Drop all duplicated columns
     all_plays_df = all_plays_df.loc[:, ~all_plays_df.columns.duplicated()]
-    all_plays_df = all_plays_df[columns_to_keep]
+
+    # If specified, keep only specified columns in addition to columns related to player types extracted later
+    if columns_to_keep:
+        all_plays_df = all_plays_df[columns_to_keep]
 
     # Finally, extract players represented as a list into columns by player type
     return extract_players(all_plays_df)
