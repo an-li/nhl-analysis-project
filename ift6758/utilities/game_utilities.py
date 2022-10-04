@@ -1,6 +1,7 @@
 import os
 from os.path import dirname, abspath
 
+import numpy as np
 import orjson
 import pandas as pd
 
@@ -56,9 +57,19 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     """
 
     df = pd.json_normalize(live_data['liveData']['plays']['allPlays'])
+
+    # Add game metadata
     df['gameId'] = live_data['gamePk']
     df['season'] = live_data['gameData']['game']['season']
     df['gameType'] = live_data['gameData']['game']['type']
+
+    # Assign team types
+    df.loc[df['team.id'] == live_data['gameData']['teams']['home']['id'], 'teamType'] = 'home'
+    df.loc[df['team.id'] == live_data['gameData']['teams']['away']['id'], 'teamType'] = 'away'
+
+    # Join with period information to get the rink side
+    df = df.merge(pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
+                  right_on='num')
 
     return df
 
@@ -77,15 +88,11 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
     """
     distinct_play_types = set(plays_df['event'])
 
-    for play_type in distinct_play_types:
-        plays_df = _extract_players_by_type(plays_df, play_type)
-
-    # Goals without assists are denoted with an empty string, replace them with string 'none' instead
-    if 'assist' in plays_df.columns:
-        plays_df['assist'].replace('', 'none', inplace=True)
+    combined_plays_df = pd.concat([_extract_players_by_type(plays_df, play_type) for play_type in distinct_play_types],
+                                  ignore_index=True)
 
     # As players have been extracted, there is no need to keep the column 'players'
-    return plays_df.drop(columns=['players'])
+    return combined_plays_df.drop(columns=['players'])
 
 
 def _extract_players_by_type(plays_df: pd.DataFrame, play_type: str) -> pd.DataFrame:
@@ -104,7 +111,7 @@ def _extract_players_by_type(plays_df: pd.DataFrame, play_type: str) -> pd.DataF
 
     if plays_for_type['players'].isna().any():
         # If no players for this type of play, do not do anything
-        return plays_df
+        return plays_for_type
     else:
         # Here, assume the first row will always have data for players
         distinct_player_types = set([player['playerType'] for player in plays_for_type['players'].iloc[0]])
@@ -112,11 +119,14 @@ def _extract_players_by_type(plays_df: pd.DataFrame, play_type: str) -> pd.DataF
         # Extract players series into columns of players' names
         players_df = plays_df['players'].apply(_extract_player_full_names, args=(distinct_player_types,))
 
+        # When there are no players in a category, they are denoted with an empty string, replace them with nan instead
+        players_df.replace('', np.nan, inplace=True)
+
         # Columns in players_df are in the order of distinct_player_types
         players_df.columns = [x.lower() for x in distinct_player_types]
 
         # Left join on plays_df and coalesce existing nan values with values in players_df
-        return plays_df.combine_first(players_df)
+        return plays_for_type.merge(players_df, left_index=True, right_index=True)
 
 
 def _extract_player_full_names(players: list, distinct_player_types: set) -> pd.Series:

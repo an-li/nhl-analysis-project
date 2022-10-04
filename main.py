@@ -7,4 +7,4 @@ if __name__ == "__main__":
                                                  ['gameId', 'season', 'gameType', 'dateTime', 'team', 'event',
                                                   'secondaryType', 'description', 'period',
                                                   'periodType', 'periodTime', 'players', 'strength', 'emptyNet', 'x',
-                                                  'y'])
+                                                  'y', 'distanceToGoal'])
