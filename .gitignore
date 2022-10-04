@@ -1,4 +1,5 @@
 # Data
+*.csv
 *.npy
 *.npz
 *.tar.gz
