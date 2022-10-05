@@ -69,7 +69,7 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
 
     # Join with period information to get the rink side
     df = df.merge(pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
-                  right_on='num')
+                  right_on='num', copy=False)
 
     return df
 
@@ -97,7 +97,8 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
 
     # Sort combined play data in increasing dateTime order
     # As players have been extracted, there is no need to keep the column 'players'
-    return combined_plays_df.sort_values(by='dateTime', kind='mergesort').drop(columns=['players']).reset_index(drop=True)
+    return combined_plays_df.sort_values(by='dateTime', kind='mergesort').drop(columns=['players']).reset_index(
+        drop=True)
 
 
 def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:

@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 from ift6758.utilities.game_utilities import plays_to_frame, get_game_data, extract_players
-from ift6758.utilities.math_utilities import compute_2d_euclidean_distance
+from ift6758.utilities.math_utilities import two_dimensional_euclidean_distance
 from ift6758.utilities.schedule_utilities import get_game_list_for_date_range
 
 
@@ -44,9 +44,9 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df.loc[~all_plays_df['rinkSide'].isna(), 'goal.y'] = 0
 
     # Compute the 2D Euclidean distance to the goal associated to the team's opponent depending on the side of the ice of the team
-    all_plays_df['distanceToGoal'] = compute_2d_euclidean_distance(all_plays_df['coordinates.x'],
-                                                                   all_plays_df['coordinates.y'],
-                                                                   all_plays_df['goal.x'], all_plays_df['goal.y'])
+    all_plays_df['distanceToGoal'] = two_dimensional_euclidean_distance(all_plays_df['coordinates.x'],
+                                                                        all_plays_df['coordinates.y'],
+                                                                        all_plays_df['goal.x'], all_plays_df['goal.y'])
 
     # If there is a filter for event types, apply it
     if event_types:

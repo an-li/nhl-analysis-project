@@ -1,6 +1,6 @@
 import numpy as np
 
-def compute_2d_euclidean_distance(x1, y1, x2, y2):
+def two_dimensional_euclidean_distance(x1, y1, x2, y2):
     """
     Compute 2D Euclidean distance between (x1, y1) and (x2, y2) given by formula sqrt((x2 - x1)² + (y2 - y1)²)
 
