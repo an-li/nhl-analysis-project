@@ -31,7 +31,7 @@ def get_game_data(game_id: str, save_to_json: bool = True) -> dict:
     file_path = os.path.join(directory_path, file_name)
 
     if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+        os.makedirs(directory_path, exist_ok=True)
 
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
@@ -91,6 +91,9 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
 
     combined_plays_df = pd.concat([_extract_players_for_type(plays_df[plays_df['event'] == play_type])
                                    for play_type in distinct_play_types], ignore_index=True)
+
+    # For goals, scorers are also shooters
+    combined_plays_df.loc[combined_plays_df['event'] == 'Goal', 'shooter'] = combined_plays_df['scorer']
 
     # Sort combined play data in increasing dateTime order
     # As players have been extracted, there is no need to keep the column 'players'
