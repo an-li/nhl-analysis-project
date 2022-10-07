@@ -16,7 +16,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
         start_date: Start date of query period
         end_date: End date of query period
         event_types: List of event types to filter on
-        columns_to_keep: Columns of data frame to keep, except columns related to player types
+        columns_to_keep: Columns of data frame to keep after cleaning the column names, except columns related to player types
     Returns:
         Data frame of cleaned up data between start_date and end_date, with additional columns
 
@@ -52,7 +52,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     if event_types:
         all_plays_df = all_plays_df[all_plays_df['result.event'].isin(event_types)]
 
-    # Clean up irrelevant portion and keep only relevant columns
+    # Clean up redundant portion of column names
     all_plays_df.columns = all_plays_df.columns.str.replace('(about|result|coordinates).', '')
     all_plays_df.columns = all_plays_df.columns.str.replace('.name', '')
 
@@ -63,5 +63,5 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     if columns_to_keep:
         all_plays_df = all_plays_df[columns_to_keep]
 
-    # Finally, extract players represented as a list into columns by player type
-    return extract_players(all_plays_df)
+    # Finally, extract players represented as a list into columns by player type if 'players' is part of columns to extract
+    return extract_players(all_plays_df) if 'players' in all_plays_df.columns else all_plays_df
