@@ -16,7 +16,7 @@ if __name__ == "__main__":
                                                   'players', 'strength', 'emptyNet', 'x', 'y', 'rinkSide',
                                                   'distanceToGoal'])
 
-    # Save the extracted data into a csv file
+    # Save the extracted data into a csv file to skip the long execution time to extract data for visualizations
     outdir = 'ift6758/data/extracted'
     filename = f'{"_".join([event.lower() for event in events_to_filter]) if events_to_filter else "plays"}_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.csv'
     if not os.path.exists(outdir):
