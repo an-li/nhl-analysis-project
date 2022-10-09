@@ -130,7 +130,7 @@ def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:
         # When there are no players in a category, they are denoted with an empty string, replace them with nan instead
         players_df.replace('', np.nan, inplace=True)
 
-        # Columns in players_df are in the order of distinct_player_types
+        # Columns in players_df are in the order of distinct_player_types, converted to lowercase for consistency
         players_df.columns = [x.lower() for x in distinct_player_types]
 
         # Left join on plays_df
