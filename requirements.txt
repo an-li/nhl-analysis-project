@@ -4,6 +4,7 @@ matplotlib
 seaborn
 requests
 opencv-python
+orjson
 tqdm
 lxml
 plotly

@@ -17,10 +17,10 @@ def get_schedule_by_date_range(start_date: datetime, end_date: datetime) -> dict
         List of NHL games grouped by date
     """
     try:
-        r = requests.get(f'{API_BASE_URL}/schedule?startDate={start_date.strftime("YYYY-mm-dd")}&endDate={end_date.strftime("YYYY-mm-dd")}')
+        r = requests.get(f'{API_BASE_URL}/schedule?startDate={start_date.strftime("%Y-%m-%d")}&endDate={end_date.strftime("%Y-%m-%d")}')
         return r.json()
     except requests.exceptions.RequestException as e:
-        print(f'Cannot get schedule for dates from {start_date.strftime("YYYY-mm-dd")} to {end_date.strftime("YYYY-mm-dd")}, {e}')
+        print(f'Cannot get schedule for dates from {start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}, {e}')
 
 
 def get_game_live_feed(game_id: str) -> dict:
