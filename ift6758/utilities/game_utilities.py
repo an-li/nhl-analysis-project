@@ -94,7 +94,8 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
                                    for play_type in distinct_play_types], ignore_index=True)
 
     # For goals, scorers are also shooters
-    combined_plays_df.loc[combined_plays_df['event'] == 'Goal', 'shooter'] = combined_plays_df['scorer']
+    if 'scorer' in combined_plays_df.columns:
+        combined_plays_df.loc[combined_plays_df['event'] == 'Goal', 'shooter'] = combined_plays_df['scorer']
 
     # Sort combined play data in increasing dateTime order
     # As players have been extracted, there is no need to keep the column 'players'
