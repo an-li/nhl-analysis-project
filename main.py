@@ -17,7 +17,7 @@ if __name__ == "__main__":
                                                   'distanceToGoal'])
 
     # Extract all without event filter
-    events_to_unfiltered = '*'
+    events_to_unfiltered = []
     all_plays_df_unfiltered = extract_and_cleanup_play_data(start_date, end_date, events_to_unfiltered,
                                                  ['gameId', 'season', 'gameType', 'dateTime', 'team', 'event',
                                                   'secondaryType', 'description', 'period', 'periodType', 'periodTime',
