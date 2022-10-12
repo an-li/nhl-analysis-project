@@ -49,7 +49,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
                                                                         all_plays_df['goal.x'], all_plays_df['goal.y'])
 
     # If there is a filter for event types, apply it
-    if event_types:
+    if event_types and event_types != '*':
         all_plays_df = all_plays_df[all_plays_df['result.event'].isin(event_types)]
 
     # Clean up redundant portion of column names
