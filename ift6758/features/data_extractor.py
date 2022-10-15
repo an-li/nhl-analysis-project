@@ -15,8 +15,8 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     Args:
         start_date: Start date of query period
         end_date: End date of query period
-        event_types: List of event types to filter on
-        columns_to_keep: Columns of data frame to keep after cleaning the column names, except columns related to player types
+        event_types: List of event types to filter on, or empty list for all events
+        columns_to_keep: Columns of data frame to keep after cleaning the column names, except columns related to player types, or empty list to keep all columns
     Returns:
         Data frame of cleaned up data between start_date and end_date, with additional columns
 
