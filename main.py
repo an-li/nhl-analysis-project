@@ -42,7 +42,7 @@ if __name__ == "__main__":
     else :
         all_plays_df_filtered = pd.read_csv(path)
 
-    # Make and save simple visualization in ./figures directory
+    # Make and save simple visualizations in ./figures directory
     shots_efficiency_by_type(all_plays_df_filtered, 20182019, plot = False, path_to_save = "./figures/")
     shots_efficiency_by_distance(all_plays_df_filtered, [20182019, 20192020, 20202021], plot = False, path_to_save = "./figures/")
     shots_efficiency_by_type_and_distance(all_plays_df_filtered, 20182019, plot = False, path_to_save = "./figures/")
