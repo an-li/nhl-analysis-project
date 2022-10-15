@@ -43,6 +43,14 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df.loc[all_plays_df['rinkSide'] == 'right', 'goal.x'] = -89
     all_plays_df.loc[~all_plays_df['rinkSide'].isna(), 'goal.y'] = 0
 
+    # For shootout plays, assume that team is shooting to the closest goal when the coordinates exist
+    all_plays_df.loc[
+        (all_plays_df['about.periodType'] == 'SHOOTOUT') & (~all_plays_df['coordinates.y'].isna()), 'goal.y'] = 0
+    all_plays_df.loc[
+        (all_plays_df['about.periodType'] == 'SHOOTOUT') & (all_plays_df['coordinates.x'] >= 0), 'goal.x'] = 89
+    all_plays_df.loc[
+        (all_plays_df['about.periodType'] == 'SHOOTOUT') & (all_plays_df['coordinates.x'] < 0), 'goal.x'] = -89
+
     # Compute the 2D Euclidean distance to the goal associated to the team's opponent depending on the side of the ice of the team
     all_plays_df['distanceToGoal'] = two_dimensional_euclidean_distance(all_plays_df['coordinates.x'],
                                                                         all_plays_df['coordinates.y'],
