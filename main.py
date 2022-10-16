@@ -33,7 +33,7 @@ if __name__ == "__main__":
     else:
         all_plays_df = pd.read_csv(path)
 
-    # Extract all without event filter
+    # Filter out for shots and goals only
     events_to_filter = ['Shot', 'Goal']
     filename = f'{"_".join([event.lower() for event in events_to_filter]) if events_to_filter else "plays"}_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.csv'
     path = os.path.join(outdir, filename)
