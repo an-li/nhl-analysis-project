@@ -8,8 +8,8 @@ from ift6758.visualizations.simple_visualizations import shots_efficiency_by_typ
     shots_efficiency_by_type_and_distance
 
 if __name__ == "__main__":
-    start_date = datetime(2016, 10, 12)
-    end_date = datetime(2021, 7, 7)
+    start_date = datetime(2016, 10, 12)  # Start of 2016-2017
+    end_date = datetime(2021, 7, 7)  # End of 2020-2021
 
     outdir = 'ift6758/data/extracted'
     if not os.path.exists(outdir):
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     path = os.path.join(outdir, filename)
     if not os.path.exists(os.path.join(outdir, filename)):
         all_plays_df_filtered = all_plays_df[all_plays_df['event'].isin(events_to_filter)]
+        all_plays_df_filtered.dropna(how='all', axis=1, inplace=True)  # Drop columns that are completely null
         # Save the extracted data into a csv file to skip the long execution time to extract data for visualizations
         print("Saving filtered events DataFrame...")
         all_plays_df_filtered.to_csv(os.path.join(outdir, filename), index=False)
