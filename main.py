@@ -33,6 +33,9 @@ if __name__ == "__main__":
     else:
         all_plays_df = pd.read_csv(path)
 
+    # Convert all numeric types
+    all_plays_df = all_plays_df.apply(pd.to_numeric, args=('ignore',))
+
     # Filter out for shots and goals only
     events_to_filter = ['Shot', 'Goal']
     filename = f'{"_".join([event.lower() for event in events_to_filter]) if events_to_filter else "plays"}_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.csv'

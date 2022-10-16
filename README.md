@@ -1,20 +1,13 @@
-# IFT6758 Repo Template
+# IFT6758 Project Repo
 
-This template provides you with a skeleton of a Python package that can be installed into your local machine.
-This allows you access your code from anywhere on your system if you've activated the environment the package was installed to.
-You are encouraged to leverage this package as a skeleton and add all of your reusable code, functions, etc. into relevant modules.
-This makes collaboration much easier as the package could be seen as a "single source of truth" to pull data, create visualizations, etc. rather than relying on a jumble of notebooks.
-You can still run into trouble if branches are not frequently merged as work progresses, so try to not let your branches diverge too much!
+Repository for NHL analysis project for Group 3
 
-Also included in this repo is an image of the NHL ice rink that you can use in your plots.
-It has the correct location of lines, faceoff dots, and length/width ratio as the real NHL rink.
-Note that the rink is 200 feet long and 85 feet wide, with the goal line 11 feet from the nearest edge of the rink, and the blue line 75 feet from the nearest edge of the rink.
+## Authors
 
-<p align="center">
-<img src="./figures/nhl_rink.png" alt="NHL Rink is 200ft x 85ft." width="400"/>
-<p>
-
-The image can be found in [`./figures/nhl_rink.png`](./figures/nhl_rink.png).
+- [Abbas Guennoun](https://github.com/AbbasGuennoun)
+- [An Li](https://github.com/an-li)
+- [Gabin Mazué](https://github.com/GabinMazue)
+- [Bei Ning Pan](https://github.com/dragonpan2)
 
 ## Installation
 
@@ -78,7 +71,7 @@ This method makes use of the `requirements.txt` file; you can disregard the `env
 Ensure you have installed the [virtualenv tool](https://virtualenv.pypa.io/en/latest/installation.html) on your system.
 Once installed, create a new virtual environment:
 
-    vitualenv ~/ift6758-venv
+    virtualenv ~/ift6758-venv
     source ~/ift6758-venv/bin/activate
 
 Install the packages from a requirements.txt file:
@@ -97,5 +90,6 @@ If you want to create a new `requirements.txt` file, you can use `pip freeze`:
 
     pip freeze > requirements.txt
 
+## How to run
 
-
+Run the code in [main.py](main.py). This will extract the data from the NHL API, then generate the graphs for visualizations.
