@@ -68,8 +68,9 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     df.loc[df['team.id'] == live_data['gameData']['teams']['away']['id'], 'teamType'] = 'away'
 
     # Join with period information to get the rink side for regular and overtime plays
-    df_ro = df[df['about.periodType'].isin(['REGULAR', 'OVERTIME'])].merge(pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
-                  right_on='num', copy=False)
+    df_ro = df[df['about.periodType'].isin(['REGULAR', 'OVERTIME'])].merge(
+        pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
+        right_on='num', copy=False)
 
     # As period info does not exist in the JSON for shootout periods, that part is isolated from the rest of the plays
     df_so = df[df['about.periodType'] == 'SHOOTOUT']
@@ -102,7 +103,28 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
 
     # Sort combined play data in increasing gameId then dateTime order
     # As players have been extracted, there is no need to keep the column 'players'
-    return combined_plays_df.sort_values(by=['gameId', 'dateTime'], kind='mergesort').drop(columns=['players']).reset_index(drop=True)
+    return combined_plays_df.sort_values(by=['gameId', 'dateTime'], kind='mergesort').drop(
+        columns=['players']).reset_index(drop=True)
+
+
+def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_filter: int = 0):
+    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
+
+    # Do not count shootout plays
+    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])]
+
+    if team_filter:
+        plays_df = plays_df[plays_df['team'] == team_filter]
+
+    if season_filter:
+        plays_df = plays_df[plays_df['season'] == season_filter]
+
+    games_count = len(plays_df['gameId'].unique())
+    if not team_filter:
+        # For each game, goals from both teams are included, so when there is no team filter, assume half of the goals are by each team on average (i.e., multiply denominator by 2)
+        games_count *= 2
+
+    return len(plays_df[plays_df['event'] == 'Goal']) / games_count
 
 
 def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:
