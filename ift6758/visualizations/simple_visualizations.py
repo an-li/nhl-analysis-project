@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import mpld3
 import numpy as np
 import seaborn as sns
 import pandas as pd
@@ -61,7 +62,8 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
     if plot:
         plt.show()
     if save:
-        fig.savefig(path_to_save + f"shot_efficiency_according_to_type{str(season)[0:4]}_{str(season)[4:8]}.png")
+        with open(path_to_save + f"shot_efficiency_according_to_type{str(season)[0:4]}_{str(season)[4:8]}.html", 'w') as f:
+            mpld3.save_html(fig, f)
     return (distinct_shot, Tirs, Buts)
 
 
@@ -122,8 +124,9 @@ def shots_efficiency_by_distance(plays_df: pd.DataFrame, seasons_list: list, sav
         if plot:
             plt.show()
         if save:
-            fig.savefig(
-                path_to_save + f"shot_efficiency_according_to_distance{str(season)[0:4]}_{str(season)[4:8]}.png")
+            with open(path_to_save + f"shot_efficiency_according_to_distance{str(season)[0:4]}_{str(season)[4:8]}.html",
+                      'w') as f:
+                mpld3.save_html(fig, f)
     return (distinct_distances, ratio)
 
 
@@ -184,6 +187,7 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
     if plot:
         plt.show()
     if save:
-        fig.savefig(
-            path_to_save + f"shot_efficiency_according_to_type_and_distance{str(season)[0:4]}_{str(season)[4:8]}.png")
+        with open(path_to_save + f"shot_efficiency_according_to_type_and_distance{str(season)[0:4]}_{str(season)[4:8]}.html",
+                  'w') as f:
+            mpld3.save_html(fig, f)
     return (X, Y)
