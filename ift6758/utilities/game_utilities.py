@@ -92,7 +92,8 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
         in increasing dateTime order
     """
 
-    distinct_play_types = set(plays_df['event'])  # Used to be 'result.event', but the prefix has been cleaned up prior to the call of this function
+    distinct_play_types = set(plays_df[
+                                  'event'])  # Used to be 'result.event', but the prefix has been cleaned up prior to the call of this function
 
     combined_plays_df = pd.concat([_extract_players_for_type(plays_df[plays_df['event'] == play_type])
                                    for play_type in distinct_play_types], ignore_index=True)
@@ -107,17 +108,47 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
         columns=['players']).reset_index(drop=True)
 
 
-def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_filter: int = 0):
-    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
+def filter_by_team_and_season(plays_df, team_filter: str = None, season_filter: int = 0):
+    """
+    Filter play data by team and season
 
-    # Do not count shootout plays
-    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])]
+    Args:
+        plays_df: Data frame containing all plays
+            Must contain columns ['gameId', 'team', 'season', 'event', 'periodType', 'rinkSide', 'x', 'y']
+        team_filter: Team name to filter on, or None for all teams
+        season_filter: Season ID (e.g., 20202021) to filter on, or None for all teams
+
+    Returns:
+        Data frame containing only plays for team and/or season specified
+    """
 
     if team_filter:
         plays_df = plays_df[plays_df['team'] == team_filter]
-
     if season_filter:
         plays_df = plays_df[plays_df['season'] == season_filter]
+
+    return plays_df
+
+
+def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_filter: int = 0):
+    """
+    Get average number of goals per team, or of all teams, in one or all seasons
+
+    Args:
+        plays_df: Data frame containing all plays
+            Must contain columns ['gameId', 'team', 'season', 'event', 'periodType', 'rinkSide', 'x', 'y']
+        team_filter: Team name to filter on, or None for all teams
+        season_filter: Season ID (e.g., 20202021) to filter on, or None for all teams
+
+    Returns:
+        Average number of goals per game (i.e., number of goals / number of games)
+    """
+
+    # Do not count shootout plays
+    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
+    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
+
+    plays_df = filter_by_team_and_season(plays_df, team_filter, season_filter)
 
     games_count = len(plays_df['gameId'].unique())
     if not team_filter:
@@ -125,6 +156,66 @@ def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_f
         games_count *= 2
 
     return len(plays_df[plays_df['event'] == 'Goal']) / games_count
+
+
+def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0):
+    """
+    Create shot map matrix of shot count per game by coordinate in the offensive zone
+    Use function filter_by_team_and_season to filter data to only contain data for specific team and/or season
+
+    Args:
+        plays_df: Data frame containing all shots and goals
+            Must contain columns ['gameId', 'team', 'season', 'event', 'periodType', 'rinkSide', 'x', 'y']
+        bin_size: Size of each bin of coordinates in feet
+
+    Returns:
+        Matrix of shot count per game by coordinate
+    """
+    x_axis_label = 'Distance from center ice to goal (ft)'
+    y_axis_label = 'Distance from center of rink (ft)'
+    values_label = f'Number of shots per game per {bin_size ** 2} ft²'
+
+    # Do not count shootout plays
+    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
+
+    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
+
+    games_count = len(plays_df['gameId'].unique())
+    if len(plays_df['team'].unique()) > 1:
+        # For each game, shots from both teams are included, so when there is more than one team in the df, assume half of the shots are by each team on average (i.e., multiply denominator by 2)
+        games_count *= 2
+
+    # Transpose x and y for plays on right side of rink to the other side so all plays are on the same side
+    plays_df.loc[plays_df['rinkSide'] == 'right', 'x'] = -1 * plays_df['x']
+    plays_df.loc[plays_df['rinkSide'] == 'right', 'y'] = -1 * plays_df['y']
+
+    # Reset negative 0 coordinates to 0
+    plays_df.loc[plays_df['x'] == -0, 'x'] = 0
+    plays_df.loc[plays_df['y'] == -0, 'y'] = 0
+
+    # Discard all plays in which the x coordinate after transposition is larger than 0, all other plays are not part of the offensive zone
+    plays_df = plays_df[plays_df['x'] >= 0]
+
+    # Divide each coordinate by *bin_size* to aggregate by *bin_size*-ft blocks and make blocks of *bin_size*^2 sqft
+    plays_df['x'] = np.round(np.divide(plays_df['x'], bin_size), 0).astype('int64')
+    plays_df['y'] = np.round(np.divide(plays_df['y'], bin_size), 0).astype('int64')
+
+    percentages_by_coordinate = plays_df[['x', 'y']].value_counts().reset_index()
+
+    # Divide aggregated shots count by number of total number of games the team(s) are involved in
+    percentages_by_coordinate[0] = np.divide(percentages_by_coordinate[0], games_count)
+
+    # Multiply the coordinates by bin_size so each cell represents the center of each bin of coordinates
+    percentages_by_coordinate['x'] = np.multiply(percentages_by_coordinate['x'], bin_size)
+    percentages_by_coordinate['y'] = np.multiply(percentages_by_coordinate['y'], bin_size)
+
+    # x is distance from center ice to goal and y is distance from center of rink (both in feet)
+    percentages_by_coordinate.rename(columns={'x': x_axis_label, 'y': y_axis_label, 0: values_label}, inplace=True)
+
+    matrix = pd.crosstab(index=percentages_by_coordinate[x_axis_label], columns=percentages_by_coordinate[y_axis_label],
+                         values=percentages_by_coordinate[values_label], aggfunc='mean').fillna(0)
+
+    return matrix
 
 
 def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:
