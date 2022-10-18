@@ -150,12 +150,9 @@ def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_f
 
     plays_df = filter_by_team_and_season(plays_df, team_filter, season_filter)
 
-    games_count = len(plays_df['gameId'].unique())
-    if not team_filter:
-        # For each game, goals from both teams are included, so when there is no team filter, assume half of the goals are by each team on average (i.e., multiply denominator by 2)
-        games_count *= 2
+    game_team_pairs = len(plays_df.groupby(['gameId', 'team']))
 
-    return len(plays_df[plays_df['event'] == 'Goal']) / games_count
+    return len(plays_df[plays_df['event'] == 'Goal']) / game_team_pairs
 
 
 def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0):
@@ -180,10 +177,7 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0):
 
     plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
 
-    games_count = len(plays_df['gameId'].unique())
-    if len(plays_df['team'].unique()) > 1:
-        # For each game, shots from both teams are included, so when there is more than one team in the df, assume half of the shots are by each team on average (i.e., multiply denominator by 2)
-        games_count *= 2
+    game_team_pairs = len(plays_df.groupby(['gameId', 'team']))
 
     # Transpose x and y for plays on right side of rink to the other side so all plays are on the same side
     plays_df.loc[plays_df['rinkSide'] == 'right', 'x'] = -1 * plays_df['x']
@@ -203,7 +197,7 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0):
     percentages_by_coordinate = plays_df[['x', 'y']].value_counts().reset_index()
 
     # Divide aggregated shots count by number of total number of games the team(s) are involved in
-    percentages_by_coordinate[0] = np.divide(percentages_by_coordinate[0], games_count)
+    percentages_by_coordinate[0] = np.divide(percentages_by_coordinate[0], game_team_pairs)
 
     # Multiply the coordinates by bin_size so each cell represents the center of each bin of coordinates
     percentages_by_coordinate['x'] = np.multiply(percentages_by_coordinate['x'], bin_size)
