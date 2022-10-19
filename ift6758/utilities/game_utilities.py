@@ -130,7 +130,7 @@ def filter_by_team_and_season(plays_df, team_filter: str = None, season_filter: 
     return plays_df
 
 
-def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_filter: int = 0):
+def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_filter: int = 0) -> float:
     """
     Get average number of goals per team, or of all teams, in one or all seasons
 
@@ -155,7 +155,7 @@ def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_f
     return len(plays_df[plays_df['event'] == 'Goal']) / game_team_pairs
 
 
-def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0):
+def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> pd.DataFrame:
     """
     Create shot map matrix of shot count per game by coordinate in the offensive zone
     Use function filter_by_team_and_season to filter data to only contain data for specific team and/or season
