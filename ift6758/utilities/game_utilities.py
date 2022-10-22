@@ -5,7 +5,7 @@ import numpy as np
 import orjson
 import pandas as pd
 
-from ift6758.api.nhl_api_service import get_game_live_feed
+from api.nhl_api_service import get_game_live_feed
 
 
 def get_game_data(game_id: str, save_to_json: bool = True) -> dict:
@@ -151,6 +151,9 @@ def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_f
     plays_df = filter_by_team_and_season(plays_df, team_filter, season_filter)
 
     game_team_pairs = len(plays_df.groupby(['gameId', 'team']))
+
+    if game_team_pairs == 0:
+        return 0
 
     return len(plays_df[plays_df['event'] == 'Goal']) / game_team_pairs
 
