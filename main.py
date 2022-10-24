@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from ift6758.features.data_extractor import extract_and_cleanup_play_data
+from ift6758.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
 
@@ -54,3 +55,10 @@ if __name__ == "__main__":
     shots_efficiency_by_distance(all_plays_df_filtered, [20182019, 20192020, 20202021], plot=False,
                                  path_to_save="./figures/")
     shots_efficiency_by_type_and_distance(all_plays_df_filtered, 20182019, plot=False, path_to_save="./figures/")
+
+    # Make and save advanced visualizations in ./figures directory
+    generate_interactive_shot_map(all_plays_df_filtered, plot=False, path_to_save="./figures/")
+
+    [generate_static_shot_map(all_plays_df_filtered, 'Colorado Avalanche', season, plot=False, path_to_save="./figures/") for season in [20162017, 20202021]]
+    [generate_static_shot_map(all_plays_df_filtered, team, season, plot=False,
+                              path_to_save="./figures/") for team in ['Buffalo Sabres', 'Tampa Bay Lightning'] for season in [20182019, 20192020, 20202021]]
