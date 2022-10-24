@@ -29,9 +29,6 @@ def generate_static_shot_map(plays_df: pd.DataFrame, team: str = None, season: i
 
     fig = go.Figure()
 
-    team_list = plays_df['team'].sort_values(kind='mergesort').unique()
-    season_list = plays_df['season'].unique()
-
     team_df = filter_by_team_and_season(plays_df, team, season)
     team_matrix = generate_shot_map_matrix(team_df, bin_size=group_feet)
     team_shots_per_game = team_matrix.sum().sum()
