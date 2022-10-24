@@ -6,13 +6,15 @@ from ift6758.utilities.game_utilities import filter_by_team_and_season, generate
 from ift6758.utilities.math_utilities import subtract_and_align_matrices
 
 
-def generate_static_shot_map(plays_df: pd.DataFrame, team: str = None, season: int = 0, save: bool = True,
+def generate_static_shot_map(plays_df: pd.DataFrame, team: str, season: int, save: bool = True,
                              plot: bool = True, path_to_save: str = "./", group_feet: int = 5):
     """
     Generate a static shot contour map with number of shots and goals scored for a specific team and season
 
     Args:
         plays_df: Data frame of plays, all seasons and teams combined
+        team: Team name
+        season: Season ID (e.g., 20162017)
         plot: Boolean to choose to plot or not
         save: Boolean to choose to save the figure
         path_to_save: path where to save the figure
@@ -36,7 +38,6 @@ def generate_static_shot_map(plays_df: pd.DataFrame, team: str = None, season: i
 
     fig.add_trace(_create_contour_map(difference_matrix, team, True))
 
-    # Update plot sizing
     _update_figure_layout(fig, _create_title(team, season, global_shots_per_game, global_goals_per_game,
                                              team_shots_per_game, team_goals_per_game))
 
@@ -47,13 +48,14 @@ def generate_static_shot_map(plays_df: pd.DataFrame, team: str = None, season: i
             f.write(fig.to_html().encode('UTF-8'))
 
 
-def generate_interactive_shot_map(plays_df: pd.DataFrame, save: bool = True, plot: bool = True,
+def generate_interactive_shot_map(plays_df: pd.DataFrame, season: int, save: bool = True, plot: bool = True,
                                   path_to_save: str = "./", group_feet: int = 5):
     """
-    Generate an interactive shot contour map with number of shots and goals scored, in which the user can select the team/season combination to view data for, then exports the graph as HTML
+    Generate an interactive shot contour map with number of shots and goals scored for one season, in which the user can select the team to view data for, then exports the graph as HTML
 
     Args:
-        plays_df: Data frame of plays, all seasons and teams combined
+        plays_df: Data frame of plays
+        season: Season ID (e.g., 20162017)
         plot: Boolean to choose to plot or not
         save: Boolean to choose to save the figure
         path_to_save: path where to save the figure
@@ -66,57 +68,54 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, save: bool = True, plo
     fig = go.Figure()
 
     team_list = plays_df['team'].sort_values(kind='mergesort').unique()
-    season_list = plays_df['season'].unique()
     buttons = []
-    visible = [False] * len(season_list) * len(team_list)
+    visible = [False] * len(team_list)
     index = 0
 
     buttons.append(dict(label='Sélectionner une équipe...',
                         method='update',
                         args=[{'visible': False},
-                              {'title': 'Plan des tirs en fonction de l\'équipe et de la saison sélectionnée',
+                              {'title': f'Plan des tirs en fonction de l\'équipe pour la saison {season}',
                                'showlegend': False}]))
 
-    for current_season in season_list:
-        global_df = filter_by_team_and_season(plays_df, season_filter=current_season)
-        global_matrix, global_shots_per_game, global_goals_per_game = _get_matrix_and_stats_per_game(global_df,
-                                                                                                     group_feet)
+    global_df = filter_by_team_and_season(plays_df, season_filter=season)
+    global_matrix, global_shots_per_game, global_goals_per_game = _get_matrix_and_stats_per_game(global_df,
+                                                                                                 group_feet)
 
-        for current_team in team_list:
-            team_df = filter_by_team_and_season(plays_df, current_team, current_season)
-            if len(team_df) > 0:
-                team_matrix, team_shots_per_game, team_goals_per_game = _get_matrix_and_stats_per_game(team_df,
-                                                                                                       group_feet)
+    for current_team in team_list:
+        team_df = filter_by_team_and_season(plays_df, current_team, season)
+        if len(team_df) > 0:
+            team_matrix, team_shots_per_game, team_goals_per_game = _get_matrix_and_stats_per_game(team_df,
+                                                                                                   group_feet)
 
-                difference_matrix = subtract_and_align_matrices(team_matrix, global_matrix, 0.0)
-                # Sort by decreasing distance from center ice so center ice appears at the bottom of the graph
-                difference_matrix.sort_index(ascending=False, kind='mergesort', inplace=True)
+            difference_matrix = subtract_and_align_matrices(team_matrix, global_matrix, 0.0)
+            # Sort by decreasing distance from center ice so center ice appears at the bottom of the graph
+            difference_matrix.sort_index(ascending=False, kind='mergesort', inplace=True)
 
-                fig.add_trace(_create_contour_map(difference_matrix, current_team, False))
+            fig.add_trace(_create_contour_map(difference_matrix, current_team, False))
 
-                visible_copy = visible.copy()
-                visible_copy[index] = True
+            visible_copy = visible.copy()
+            visible_copy[index] = True
 
-                buttons.append(dict(label=f'{current_season} {current_team}',
-                                    method='update',
-                                    args=[{'visible': visible_copy},
-                                          {
-                                              'title': _create_title(current_team, current_season,
-                                                                     global_shots_per_game, global_goals_per_game,
-                                                                     team_shots_per_game, team_goals_per_game),
-                                              'showlegend': False}]))
+            buttons.append(dict(label=f'{current_team}',
+                                method='update',
+                                args=[{'visible': visible_copy},
+                                      {
+                                          'title': _create_title(current_team, season,
+                                                                 global_shots_per_game, global_goals_per_game,
+                                                                 team_shots_per_game, team_goals_per_game),
+                                          'showlegend': False}]))
 
-                index += 1
+            index += 1
 
-    # Update plot sizing
-    _update_figure_layout(fig, 'Plan des tirs en fonction de l\'équipe et de la saison sélectionnée')
+    _update_figure_layout(fig, f'Plan des tirs en fonction de l\'équipe pour la saison {season}')
 
     _create_dropdown(fig, buttons)
 
     if plot:
         fig.show()
     if save:
-        with open(path_to_save + 'interactive_shot_map.html', 'wb') as f:
+        with open(path_to_save + f'interactive_shot_map_{season}.html', 'wb') as f:
             f.write(fig.to_html().encode('UTF-8'))
 
 
@@ -135,6 +134,7 @@ def _get_matrix_and_stats_per_game(plays_df: pd.DataFrame, group_feet: int) -> (
             goals_per_game: Number of goals per game
 
     """
+
     matrix = generate_shot_map_matrix(plays_df, bin_size=group_feet)
     shots_per_game = matrix.sum().sum()
     goals_per_game = get_goals_per_game(plays_df)
@@ -160,7 +160,7 @@ def _create_title(team: str, season: int, global_shots_per_game: float, global_g
         Title containing team name and season, as well as number of shots and goals by hour by team and compared to NHL average
     """
 
-    return f'Plan des tirs de l\'équipe {team} et de la saison {season}<br>{round(team_shots_per_game, 2)} tirs par heure ({round((team_shots_per_game - global_shots_per_game) / global_shots_per_game * 100, 2)}% par rapport à la moyenne)<br>{round(team_goals_per_game, 2)} buts par heure ({round((team_goals_per_game - global_goals_per_game) / global_goals_per_game * 100, 2)}% par rapport à la moyenne)'
+    return f'Plan des tirs de l\'équipe {team} pour la saison {season}<br>{round(team_shots_per_game, 2)} tirs par heure ({round((team_shots_per_game - global_shots_per_game) / global_shots_per_game * 100, 2)}% par rapport à la moyenne)<br>{round(team_goals_per_game, 2)} buts par heure ({round((team_goals_per_game - global_goals_per_game) / global_goals_per_game * 100, 2)}% par rapport à la moyenne)'
 
 
 def _create_contour_map(difference_matrix: pd.DataFrame, name: str, visible: bool = True) -> go.Contour:

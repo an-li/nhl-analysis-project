@@ -57,7 +57,7 @@ if __name__ == "__main__":
     shots_efficiency_by_type_and_distance(all_plays_df_filtered, 20182019, plot=False, path_to_save="./figures/")
 
     # Make and save advanced visualizations in ./figures directory
-    generate_interactive_shot_map(all_plays_df_filtered, plot=False, path_to_save="./figures/")
+    [generate_interactive_shot_map(all_plays_df_filtered, season, plot=False, path_to_save="./figures/") for season in all_plays_df_filtered['season'].unique()]
 
     [generate_static_shot_map(all_plays_df_filtered, 'Colorado Avalanche', season, plot=False, path_to_save="./figures/") for season in [20162017, 20202021]]
     [generate_static_shot_map(all_plays_df_filtered, team, season, plot=False,
