@@ -139,7 +139,7 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, save: bool = True, plo
                                          colorscale=[[0, 'rgb(0,0,255)'], [0.5, 'rgb(255,255,255)'], [1,
                                                                                                       'rgb(255,0,0)']],
                                          x=difference_matrix.columns, y=difference_matrix.index, zmin=-1 * largest_diff,
-                                         zmax=largest_diff, line_smoothing=1.3))
+                                         zmax=largest_diff, line_smoothing=1.3, visible=False))
 
                 visible_copy = visible.copy()
                 visible_copy[index] = True
