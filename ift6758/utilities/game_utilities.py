@@ -72,6 +72,10 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
         pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
         right_on='num', copy=False)
 
+    # Add seconds since game start, which is ((period number - 1) × 1200) + number of seconds since period start
+    df_ro['secondsSinceStart'] = np.add(df_ro['about.periodTime'].apply(_get_number_of_seconds_since_period_start),
+                                        np.multiply(np.subtract(df_ro['about.period'], 1), 1200))
+
     # As period info does not exist in the JSON for shootout periods, that part is isolated from the rest of the plays
     df_so = df[df['about.periodType'] == 'SHOOTOUT']
 
@@ -102,9 +106,9 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
     if 'scorer' in combined_plays_df.columns:
         combined_plays_df.loc[combined_plays_df['event'] == 'Goal', 'shooter'] = combined_plays_df['scorer']
 
-    # Sort combined play data in increasing gameId then dateTime order
+    # Sort combined play data in increasing gameId then secondsSinceStart order
     # As players have been extracted, there is no need to keep the column 'players'
-    return combined_plays_df.sort_values(by=['gameId', 'dateTime'], kind='mergesort').drop(
+    return combined_plays_df.sort_values(by=['gameId', 'secondsSinceStart', 'dateTime'], kind='mergesort').drop(
         columns=['players']).reset_index(drop=True)
 
 
@@ -213,6 +217,19 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> p
                          values=percentages_by_coordinate[values_label], aggfunc='mean').fillna(0)
 
     return matrix
+
+
+def _get_number_of_seconds_since_period_start(time_string: str) -> int:
+    """
+    Get number of seconds since period start
+
+    Args:
+        time_string: String representation of elapsed time since beginning of game in mm:ss
+
+    Returns:
+        Number of seconds since period start
+    """
+    return int(time_string.split(':')[0]) * 60 + int(time_string.split(':')[1])
 
 
 def _extract_players_for_type(plays_df: pd.DataFrame) -> pd.DataFrame:

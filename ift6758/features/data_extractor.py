@@ -1,9 +1,10 @@
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 
 from ift6758.utilities.game_utilities import plays_to_frame, get_game_data, extract_players
-from ift6758.utilities.math_utilities import two_dimensional_euclidean_distance
+from ift6758.utilities.math_utilities import two_dimensional_euclidean_distance, get_angle_with_x_axis
 from ift6758.utilities.schedule_utilities import get_game_list_for_date_range
 
 
@@ -53,6 +54,17 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df['distanceToGoal'] = two_dimensional_euclidean_distance(all_plays_df['coordinates.x'],
                                                                         all_plays_df['coordinates.y'],
                                                                         all_plays_df['goal.x'], all_plays_df['goal.y'])
+    # Compute angle with respect to the X-axis of the goal
+    all_plays_df['angleWithGoal'] = get_angle_with_x_axis(
+        np.abs(all_plays_df['goal.x'] - all_plays_df['coordinates.x']), all_plays_df['coordinates.y'])
+
+    all_plays_df.loc[all_plays_df['result.event'] == 'Shot', 'isGoal'] = 0
+    all_plays_df.loc[all_plays_df['result.event'] == 'Goal', 'isGoal'] = 1
+
+    # For goals, if there is no empty net information, set emptyNet to False
+    all_plays_df.loc[
+        (all_plays_df['result.event'] == 'Goal') & (all_plays_df['result.emptyNet'].isna()), 'result.emptyNet'] = False
+    all_plays_df['result.emptyNet'] = all_plays_df['result.emptyNet'].astype(float)
 
     # If there is a filter for event types, apply it
     if event_types:
@@ -71,3 +83,64 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
 
     # Finally, extract players represented as a list into columns by player type if 'players' is part of columns to extract
     return extract_players(all_plays_df) if 'players' in all_plays_df.columns else all_plays_df
+
+
+def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add previous event information for shots and goals with a few additional stats:
+    - Seconds since previous event
+    - Type of previous event
+    - Coordinates of previous event
+    - Distance from current event to previous one
+    - Shot angle from current event to previous one
+    - Rebound (bool): True if previous event was a shot, False otherwise
+    - Speed (distance since previous event / Seconds since previous event)
+    - Shot angle change
+
+    Args:
+        plays_df: Data frame containing all plays
+
+    Returns:
+        Data frame of shots and goals with information on the previous play
+    """
+
+    # Keep only regular and overtime plays, excluding any row that does not have a rinkSide or coordinates
+    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
+    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
+    plays_df.reset_index(drop=True, inplace=True)
+
+    # Make a copy of only necessary columns to build previous plays
+    previous_plays = plays_df[['secondsSinceStart', 'event', 'x', 'y', 'angleWithGoal']].rename(
+        columns={'secondsSinceStart': 'prevSecondsSinceStart', 'event': 'prevEvent', 'x': 'prevX', 'y': 'prevY',
+                 'angleWithGoal': 'prevAngleWithGoal'})
+    previous_plays.index += 1
+
+    # Left join on plays data frame to get the previous play corresponding to each event that has defined coordinates
+    plays_df = plays_df.merge(previous_plays, how='left', left_index=True, right_index=True)
+
+    # The remaining steps are only performed on shots and goals
+    plays_df = plays_df[plays_df['event'].isin(['Shot', 'Goal'])]
+
+    # Erase previous event stats for the first event of each game
+    plays_df.loc[plays_df['secondsSinceStart'] == 0, previous_plays.columns] = np.nan
+
+    # Compute time, distance and angle change from previous event
+    plays_df['secondsSincePrev'] = np.subtract(plays_df['secondsSinceStart'], plays_df['prevSecondsSinceStart'])
+    plays_df['distanceFromPrev'] = two_dimensional_euclidean_distance(plays_df['x'], plays_df['y'], plays_df['prevX'],
+                                                                      plays_df['prevY'])
+
+    # Initialize angle change and rebound columns according to type of previous event
+    plays_df['changeOfAngleFromPrev'] = np.where(plays_df['prevEvent'] == 'Shot', np.abs(
+        np.subtract(plays_df['angleWithGoal'], plays_df['prevAngleWithGoal'])), 0)
+    plays_df['rebound'] = np.where(plays_df['prevEvent'] == 'Shot', True, False)
+
+    # Computing linear and change of angle speeds requires division, when the denominator is 0, treat time change as 1 and use the distance/angle difference as change
+    with np.errstate(divide='ignore', invalid='ignore'):
+        plays_df['speed'] = np.true_divide(plays_df['distanceFromPrev'], plays_df['secondsSincePrev'])
+        plays_df.loc[plays_df['secondsSincePrev'] == 0, 'speed'] = plays_df['distanceFromPrev']
+
+        plays_df['speedOfChangeOfAngle'] = np.true_divide(plays_df['changeOfAngleFromPrev'],
+                                                          plays_df['secondsSincePrev'])
+        plays_df.loc[plays_df['secondsSincePrev'] == 0, 'changeOfAngleFromPrev'] = plays_df['changeOfAngleFromPrev']
+
+    return plays_df
