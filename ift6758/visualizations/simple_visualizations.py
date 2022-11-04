@@ -23,17 +23,17 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
     # Filter dataframe according to season 
     df = plays_df[plays_df["season"] == season]
 
-    # Drop 'nan' values in 'secondaryType'
-    df = df.dropna(subset=["secondaryType"])
+    # Drop 'nan' values in 'shotType'
+    df = df.dropna(subset=["shotType"])
 
     # Obtain a list of shots types 
-    distinct_shot = list(set(df["secondaryType"]))
+    distinct_shot = list(set(df["shotType"]))
     Tirs = []
     Buts = []
 
     # Count number of shots and goals for every type 
     for shot in distinct_shot:
-        df2 = df[df["secondaryType"] == shot]
+        df2 = df[df["shotType"] == shot]
         Tirs.append(len(df2))
         Buts.append(len(df2[df2["event"] == "Goal"]))
 
@@ -149,10 +149,10 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
 
     # Filter df by season and remove nan values
     df = plays_df[plays_df["season"] == season]
-    df = df.dropna(subset=["distanceToGoal", "secondaryType"])
+    df = df.dropna(subset=["distanceToGoal", "shotType"])
 
     # Obtain a list of shots types
-    distinct_shot = list(set(df["secondaryType"]))
+    distinct_shot = list(set(df["shotType"]))
 
     count = 0
     X = []
@@ -160,7 +160,7 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
 
     for shot in distinct_shot:
         # Filter by type of shot
-        df2 = df[df["secondaryType"] == shot]
+        df2 = df[df["shotType"] == shot]
 
         # Use function to have x coordinate and y coordinate for distances and efficiency
         t = shots_efficiency_by_distance(df2, [season], save=False, plot=False, group_feet=group_feet)
