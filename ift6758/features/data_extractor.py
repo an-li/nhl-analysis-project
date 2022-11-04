@@ -85,9 +85,8 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     if 'players' in all_plays_df.columns:
         all_plays_df = extract_players(all_plays_df)
 
-    # Finally, sort combined play data in increasing gameId then secondsSinceStart order
-    return all_plays_df.sort_values(by=['gameId', 'eventIdx', 'secondsSinceStart', 'dateTime'],
-                                    kind='mergesort').reset_index(drop=True)
+    # Finally, sort combined play data in increasing gameId then eventIdx order
+    return all_plays_df.sort_values(by=['gameId', 'eventIdx'], kind='mergesort').reset_index(drop=True)
 
 
 def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
