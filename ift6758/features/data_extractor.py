@@ -18,11 +18,11 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
         end_date: End date of query period
         event_types: List of event types to filter on, or empty list for all events
         columns_to_keep: Columns of data frame to keep after cleaning the column names, except columns related to player types, or empty list to keep all columns
+            Must include gameId and eventIdx
     Returns:
         Data frame of cleaned up data between start_date and end_date, with additional columns
 
     """
-
     # Get schedule to retrieve the list of games from start_date and end_date
     schedule_df = get_game_list_for_date_range(start_date, end_date)
 
@@ -55,6 +55,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
                                                                         all_plays_df['coordinates.y'],
                                                                         all_plays_df['goal.x'], all_plays_df['goal.y'])
     # Compute angle with respect to the X-axis of the goal
+    # Angle is positive when above the X-axis, negative if below to help calculate the change of angle
     all_plays_df['angleWithGoal'] = get_angle_with_x_axis(
         np.abs(all_plays_df['goal.x'] - all_plays_df['coordinates.x']), all_plays_df['coordinates.y'])
 
@@ -79,6 +80,12 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
 
     # If specified, keep only specified columns in addition to columns related to player types extracted later
     if columns_to_keep:
+        # Add eventIdx and gameId if they are not part of columns_to_keep, they will be required for sorting
+        if 'eventIdx' not in columns_to_keep:
+            columns_to_keep = ['eventIdx'] + columns_to_keep
+        if 'gameId' not in columns_to_keep:
+            columns_to_keep = ['gameId'] + columns_to_keep
+
         all_plays_df = all_plays_df[columns_to_keep]
 
     # Extract players represented as a list into columns by player type if 'players' is part of columns to extract
@@ -133,6 +140,7 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
     plays_df.rename(columns={'secondaryType': 'shotType'}, inplace=True)
 
     # Compute time, distance and angle change from previous event
+    # Note that data given by trhe NHL API are at 1-second precision, events that happen within one second of each other have a time difference of 0 seconds
     plays_df['secondsSincePrev'] = np.subtract(plays_df['secondsSinceStart'], plays_df['prevSecondsSinceStart'])
     plays_df['distanceFromPrev'] = two_dimensional_euclidean_distance(plays_df['x'], plays_df['y'], plays_df['prevX'],
                                                                       plays_df['prevY'])
