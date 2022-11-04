@@ -78,8 +78,6 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
 
     # As period info does not exist in the JSON for shootout periods, that part is isolated from the rest of the plays
     df_so = df[df['about.periodType'] == 'SHOOTOUT']
-    if len(df_so) > 0:
-        df_so['secondsSinceStart'] = 3901  # Time is not counted in shootout, assume all plays start at 1 second after 60 minutes regulation + 5 minutes overtime
 
     return pd.concat([df_ro, df_so])
 
