@@ -78,6 +78,8 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
 
     # As period info does not exist in the JSON for shootout periods, that part is isolated from the rest of the plays
     df_so = df[df['about.periodType'] == 'SHOOTOUT']
+    if len(df_so) > 0:
+        df_so['secondsSinceStart'] = 3901  # Time is not counted in shootout, assume all plays start at 1 second after 60 minutes regulation + 5 minutes overtime
 
     return pd.concat([df_ro, df_so])
 
@@ -106,10 +108,8 @@ def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
     if 'scorer' in combined_plays_df.columns:
         combined_plays_df.loc[combined_plays_df['event'] == 'Goal', 'shooter'] = combined_plays_df['scorer']
 
-    # Sort combined play data in increasing gameId then secondsSinceStart order
     # As players have been extracted, there is no need to keep the column 'players'
-    return combined_plays_df.sort_values(by=['gameId', 'secondsSinceStart', 'dateTime'], kind='mergesort').drop(
-        columns=['players']).reset_index(drop=True)
+    return combined_plays_df.drop(columns=['players']).reset_index(drop=True)
 
 
 def filter_by_team_and_season(plays_df, team_filter: str = None, season_filter: int = 0):
@@ -150,7 +150,6 @@ def get_goals_per_game(plays_df: pd.DataFrame, team_filter: str = None, season_f
 
     # Do not count shootout plays
     plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
-    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
 
     plays_df = filter_by_team_and_season(plays_df, team_filter, season_filter)
 
@@ -181,8 +180,6 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> p
 
     # Do not count shootout plays
     plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
-
-    plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
 
     game_team_pairs = len(plays_df.groupby(['gameId', 'team']))
 

@@ -23,11 +23,11 @@ if __name__ == "__main__":
         print("Downloading/Reading...")
         all_plays_df = extract_and_cleanup_play_data(start_date, end_date,
                                                      columns_to_keep=['gameId', 'season', 'gameType', 'dateTime',
-                                                                      'team', 'event', 'isGoal', 'secondaryType',
-                                                                      'description', 'period', 'periodType',
-                                                                      'periodTime', 'secondsSinceStart', 'players',
-                                                                      'strength', 'emptyNet', 'x', 'y', 'rinkSide',
-                                                                      'distanceToGoal', 'angleWithGoal'])
+                                                                      'team', 'eventIdx', 'event', 'isGoal',
+                                                                      'secondaryType', 'description', 'period',
+                                                                      'periodType', 'periodTime', 'secondsSinceStart',
+                                                                      'players', 'strength', 'emptyNet', 'x', 'y',
+                                                                      'rinkSide', 'distanceToGoal', 'angleWithGoal'])
 
         # Save the unfiltered data
         print("Saving all events DataFrame...")
@@ -39,7 +39,6 @@ if __name__ == "__main__":
     all_plays_df = all_plays_df.apply(pd.to_numeric, args=('ignore',))
 
     # Filter out for shots and goals only, data frame will later be used for feature engineering
-    events_to_filter = ['Shot', 'Goal']
     filename = f'shot_goal_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.csv'
     path = os.path.join(outdir, filename)
     if not os.path.exists(os.path.join(outdir, filename)):
@@ -54,6 +53,7 @@ if __name__ == "__main__":
     # Convert all numeric types
     all_plays_df_filtered = all_plays_df_filtered.apply(pd.to_numeric, args=('ignore',))
 
+    print("Generating visualizations...")
     # Make and save simple visualizations in ./figures directory
     shots_efficiency_by_type(all_plays_df_filtered, 20182019, plot=False, path_to_save="./figures/")
     shots_efficiency_by_distance(all_plays_df_filtered, [20182019, 20192020, 20202021], plot=False,
@@ -73,8 +73,10 @@ if __name__ == "__main__":
     # Create training and test data frames
     df_train = all_plays_df_filtered[
         (all_plays_df_filtered['season'].isin([20152016, 20162017, 20172018, 20182019])) & (
-                    all_plays_df_filtered['gameType'] == 'R')]
+                    all_plays_df_filtered['gameType'] == 'R') & (
+                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_regular = all_plays_df_filtered[
-        (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'R')]
+        (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'R') & (
+                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_playoffs = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'P')]

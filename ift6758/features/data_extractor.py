@@ -81,21 +81,26 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     if columns_to_keep:
         all_plays_df = all_plays_df[columns_to_keep]
 
-    # Finally, extract players represented as a list into columns by player type if 'players' is part of columns to extract
-    return extract_players(all_plays_df) if 'players' in all_plays_df.columns else all_plays_df
+    # Extract players represented as a list into columns by player type if 'players' is part of columns to extract
+    if 'players' in all_plays_df.columns:
+        all_plays_df = extract_players(all_plays_df)
+
+    # Finally, sort combined play data in increasing gameId then secondsSinceStart order
+    return all_plays_df.sort_values(by=['gameId', 'eventIdx', 'secondsSinceStart', 'dateTime'],
+                                    kind='mergesort').reset_index(drop=True)
 
 
 def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add previous event information for shots and goals with a few additional stats:
-    - Seconds since previous event
-    - Type of previous event
-    - Coordinates of previous event
-    - Distance from current event to previous one
-    - Shot angle from current event to previous one
-    - Rebound (bool): True if previous event was a shot, False otherwise
-    - Speed (distance since previous event / Seconds since previous event)
-    - Shot angle change
+    Keep and add previous event information for shots and goals, excluding those in the shootout, with a few additional stats:
+    - 'prevSecondsSinceStart': Seconds since previous event
+    - 'prevEvent': Type of previous event
+    - 'prevX' and 'prevY': Coordinates of previous event
+    - 'prevAngleWithGoal': Shot angle of previous event
+    - 'rebound' (bool): True if previous event was a shot by the same team, False otherwise
+    - 'distanceFromPrev': Distance from current event to previous one
+    - 'speed': Speed (distance since previous event / seconds since previous event) in ft/s
+    - 'changeOfAngleFromPrev': Shot angle change from current event to previous one in deg/s
 
     Args:
         plays_df: Data frame containing all plays
@@ -104,25 +109,29 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
         Data frame of shots and goals with information on the previous play
     """
 
-    # Keep only regular and overtime plays, excluding any row that does not have a rinkSide or coordinates
-    plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
+    # Exclude any row that does not have a rinkSide or coordinates
+    plays_df = plays_df.copy()
     plays_df.dropna(subset=['rinkSide', 'x', 'y'], how='any', inplace=True)
     plays_df.reset_index(drop=True, inplace=True)
 
     # Make a copy of only necessary columns to build previous plays
-    previous_plays = plays_df[['secondsSinceStart', 'event', 'x', 'y', 'angleWithGoal']].rename(
-        columns={'secondsSinceStart': 'prevSecondsSinceStart', 'event': 'prevEvent', 'x': 'prevX', 'y': 'prevY',
-                 'angleWithGoal': 'prevAngleWithGoal'})
+    previous_plays = plays_df[['gameId', 'secondsSinceStart', 'team', 'event', 'x', 'y', 'angleWithGoal']].rename(
+        columns={'gameId': 'prevGameId', 'secondsSinceStart': 'prevSecondsSinceStart', 'team': 'prevTeam',
+                 'event': 'prevEvent', 'x': 'prevX', 'y': 'prevY', 'angleWithGoal': 'prevAngleWithGoal'})
     previous_plays.index += 1
 
     # Left join on plays data frame to get the previous play corresponding to each event that has defined coordinates
     plays_df = plays_df.merge(previous_plays, how='left', left_index=True, right_index=True)
 
+    # Erase previous event stats for the first event of each game, as well as shootout plays
+    plays_df.loc[(plays_df['gameId'] != plays_df['prevGameId']) | (
+                plays_df['periodType'] == 'SHOOTOUT'), previous_plays.columns] = np.nan
+
     # The remaining steps are only performed on shots and goals
     plays_df = plays_df[plays_df['event'].isin(['Shot', 'Goal'])]
 
-    # Erase previous event stats for the first event of each game
-    plays_df.loc[plays_df['secondsSinceStart'] == 0, previous_plays.columns] = np.nan
+    # Set 'secondaryType' for shots and goals as 'shotType'
+    plays_df.rename(columns={'secondaryType': 'shotType'}, inplace=True)
 
     # Compute time, distance and angle change from previous event
     plays_df['secondsSincePrev'] = np.subtract(plays_df['secondsSinceStart'], plays_df['prevSecondsSinceStart'])
@@ -130,17 +139,21 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
                                                                       plays_df['prevY'])
 
     # Initialize angle change and rebound columns according to type of previous event
-    plays_df['changeOfAngleFromPrev'] = np.where(plays_df['prevEvent'] == 'Shot', np.abs(
+    # A rebound is a shot by the same team immediately following another one
+    plays_df['rebound'] = ((plays_df['prevEvent'] == 'Shot') & (plays_df['team'] == plays_df['prevTeam']))
+    plays_df['changeOfAngleFromPrev'] = np.where(plays_df['rebound'], np.abs(
         np.subtract(plays_df['angleWithGoal'], plays_df['prevAngleWithGoal'])), 0)
-    plays_df['rebound'] = np.where(plays_df['prevEvent'] == 'Shot', True, False)
 
-    # Computing linear and change of angle speeds requires division, when the denominator is 0, treat time change as 1 and use the distance/angle difference as change
+    # Computing linear and change of angle speeds requires division
+    # When the denominator (time) is 0, treat time change as 1 and use the distance/angle difference as change
     with np.errstate(divide='ignore', invalid='ignore'):
         plays_df['speed'] = np.true_divide(plays_df['distanceFromPrev'], plays_df['secondsSincePrev'])
         plays_df.loc[plays_df['secondsSincePrev'] == 0, 'speed'] = plays_df['distanceFromPrev']
 
-        plays_df['speedOfChangeOfAngle'] = np.true_divide(plays_df['changeOfAngleFromPrev'],
-                                                          plays_df['secondsSincePrev'])
-        plays_df.loc[plays_df['secondsSincePrev'] == 0, 'changeOfAngleFromPrev'] = plays_df['changeOfAngleFromPrev']
+        plays_df['speedOfChangeOfAngle'] = np.where(plays_df['rebound'],
+                                                    np.true_divide(plays_df['changeOfAngleFromPrev'],
+                                                                   plays_df['secondsSincePrev']), 0)
+        plays_df.loc[(plays_df['secondsSincePrev'] == 0) & (plays_df['rebound']), 'speedOfChangeOfAngle'] = plays_df[
+            'changeOfAngleFromPrev']
 
-    return plays_df
+    return plays_df.drop(columns=['prevGameId', 'prevTeam'])

@@ -18,6 +18,7 @@ def two_dimensional_euclidean_distance(x1, y1, x2, y2):
     """
     return np.sqrt(np.add(np.square(np.subtract(x2, x1)), np.square(np.subtract(y2, y1))))
 
+
 def get_angle_with_x_axis(x, y):
     """
     Compute angle with respect to X axis in degrees
@@ -29,10 +30,10 @@ def get_angle_with_x_axis(x, y):
     Returns:
         Angle with respect to X axis in degrees
     """
-
     angle = np.arctan2(y, x)
 
     return angle * 180 / np.pi
+
 
 def subtract_and_align_matrices(m1: pd.DataFrame, m2: pd.DataFrame, fill_value=np.nan) -> pd.DataFrame:
     """
