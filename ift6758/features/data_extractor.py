@@ -151,6 +151,10 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
     plays_df['changeOfAngleFromPrev'] = np.where(plays_df['rebound'], np.abs(
         np.subtract(plays_df['angleWithGoal'], plays_df['prevAngleWithGoal'])), 0)
 
+    # Take absolute value of angle with goal, direction is no longer important for graphing and feature engineering
+    plays_df['angleWithGoal'] = np.abs(plays_df['angleWithGoal'])
+    plays_df['prevAngleWithGoal'] = np.abs(plays_df['prevAngleWithGoal'])
+
     # Computing linear and change of angle speeds requires division
     # When the denominator (time) is 0, treat time change as 1 and use the distance/angle difference as change
     with np.errstate(divide='ignore', invalid='ignore'):
