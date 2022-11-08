@@ -54,13 +54,18 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df['distanceToGoal'] = two_dimensional_euclidean_distance(all_plays_df['coordinates.x'],
                                                                         all_plays_df['coordinates.y'],
                                                                         all_plays_df['goal.x'], all_plays_df['goal.y'])
+
     # Compute angle with respect to the X-axis of the goal
-    # Angle is positive when above the X-axis, negative if below to help calculate the change of angle
+    # Angle is positive for plays on the right of the net, negative for plays on the left of the net
     # Invert the direction of the subtraction when goal.x < 0 to get the positive difference between the play and the goal
+    # For plays in which the goal is on the right, the y will need to be flipped as the right side of the net has negative y
     all_plays_df['angleWithGoal'] = get_angle_with_x_axis(
         np.where(all_plays_df['goal.x'] >= 0, all_plays_df['goal.x'] - all_plays_df['coordinates.x'],
-                 all_plays_df['coordinates.x'] - all_plays_df['goal.x']), all_plays_df['coordinates.y'])
+                 all_plays_df['coordinates.x'] - all_plays_df['goal.x']), np.where(all_plays_df['goal.x'] > 0, -1 * all_plays_df['coordinates.y'], all_plays_df['coordinates.y']))
+    # Normalize angles with value -0 to 0
+    all_plays_df.loc[all_plays_df['angleWithGoal'] == -0.0, 'angleWithGoal'] = 0.0
 
+    # Set isGoal depending on if it is a shot or a goal
     all_plays_df.loc[all_plays_df['result.event'] == 'Shot', 'isGoal'] = 0
     all_plays_df.loc[all_plays_df['result.event'] == 'Goal', 'isGoal'] = 1
 
@@ -152,10 +157,6 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
     plays_df['rebound'] = ((plays_df['prevEvent'] == 'Shot') & (plays_df['team'] == plays_df['prevTeam']))
     plays_df['changeOfAngleFromPrev'] = np.where(plays_df['rebound'], np.abs(
         np.subtract(plays_df['angleWithGoal'], plays_df['prevAngleWithGoal'])), 0)
-
-    # Take absolute value of angle with goal, direction is no longer important for graphing and feature engineering
-    plays_df['angleWithGoal'] = np.abs(plays_df['angleWithGoal'])
-    plays_df['prevAngleWithGoal'] = np.abs(plays_df['prevAngleWithGoal'])
 
     # Computing linear and change of angle speeds requires division
     # When the denominator (time) is 0, treat time change as 1 and use the distance/angle difference as change
