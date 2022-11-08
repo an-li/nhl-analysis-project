@@ -56,8 +56,10 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
                                                                         all_plays_df['goal.x'], all_plays_df['goal.y'])
     # Compute angle with respect to the X-axis of the goal
     # Angle is positive when above the X-axis, negative if below to help calculate the change of angle
+    # Invert the direction of the subtraction when goal.x < 0 to get the positive difference between the play and the goal
     all_plays_df['angleWithGoal'] = get_angle_with_x_axis(
-        np.abs(all_plays_df['goal.x'] - all_plays_df['coordinates.x']), all_plays_df['coordinates.y'])
+        np.where(all_plays_df['goal.x'] >= 0, all_plays_df['goal.x'] - all_plays_df['coordinates.x'],
+                 all_plays_df['coordinates.x'] - all_plays_df['goal.x']), all_plays_df['coordinates.y'])
 
     all_plays_df.loc[all_plays_df['result.event'] == 'Shot', 'isGoal'] = 0
     all_plays_df.loc[all_plays_df['result.event'] == 'Goal', 'isGoal'] = 1
@@ -131,7 +133,7 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
 
     # Erase previous event stats for the first event of each game, as well as shootout plays
     plays_df.loc[(plays_df['gameId'] != plays_df['prevGameId']) | (
-                plays_df['periodType'] == 'SHOOTOUT'), previous_plays.columns] = np.nan
+            plays_df['periodType'] == 'SHOOTOUT'), previous_plays.columns] = np.nan
 
     # The remaining steps are only performed on shots and goals
     plays_df = plays_df[plays_df['event'].isin(['Shot', 'Goal'])]
