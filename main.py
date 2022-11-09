@@ -5,6 +5,8 @@ import pandas as pd
 
 from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
 from ift6758.features.incorrect_feature_analysis import incorrect_feature_analysis
+from ift6758.visualizations.features_engineering import shots_and_goals_by_distance, shots_and_goals_by_angles, \
+    shots_by_angles_and_distance, goal_ratio_by_distance, goal_ratio_by_angles, empty_goal_by_distance
 from ift6758.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
@@ -84,3 +86,11 @@ if __name__ == "__main__":
 
     # Run incorrect feature analysis and generate the relevant CSVs
     incorrect_feature_analysis(df_train)
+
+    print("Generating features engineering visualizations...")
+    shots_and_goals_by_distance(df_train, plot = False, path_to_save="./figures/")
+    shots_and_goals_by_angles(df_train, plot = False, path_to_save="./figures/")
+    shots_by_angles_and_distance(df_train, plot = False, path_to_save="./figures/")
+    goal_ratio_by_distance(df_train, plot = False, path_to_save="./figures/")
+    goal_ratio_by_angles(df_train, plot = False, path_to_save="./figures/")
+    empty_goal_by_distance(df_train, plot = False, path_to_save="./figures/")

@@ -62,6 +62,8 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
         plt.show()
     if save:
         fig.savefig(path_to_save + f"shot_efficiency_according_to_type{str(season)[0:4]}_{str(season)[4:8]}.png")
+    if save or plot:
+        plt.close()
     return (distinct_shot, Tirs, Buts)
 
 
@@ -82,6 +84,7 @@ def shots_efficiency_by_distance(plays_df: pd.DataFrame, seasons_list: list, sav
         Return a tuple with list of x coordinate and list of y coordinate according to the chosen seasons
     """
 
+    plt.close("all")
     ratio = []
     distinct_distances = []
     for season in seasons_list:
@@ -123,6 +126,8 @@ def shots_efficiency_by_distance(plays_df: pd.DataFrame, seasons_list: list, sav
             plt.show()
         if save:
             fig.savefig(path_to_save + f"shot_efficiency_according_to_distance{str(season)[0:4]}_{str(season)[4:8]}.png")
+        if save or plot:
+            plt.close()
     return (distinct_distances, ratio)
 
 
@@ -141,6 +146,8 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
     Return :
         Return a tuple of x coordinate and y coordinate which represent types, shots and goals
     '''
+
+    plt.close("all")
     if save or plot:
         # Create subplot with 7 graphics
         fig, ax = plt.subplots(4, 2, figsize=(15, 8))
@@ -184,4 +191,6 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
         plt.show()
     if save:
         fig.savefig(path_to_save + f"shot_efficiency_according_to_type_and_distance{str(season)[0:4]}_{str(season)[4:8]}.png")
+    if save or plot:
+        plt.close()
     return (X, Y)
