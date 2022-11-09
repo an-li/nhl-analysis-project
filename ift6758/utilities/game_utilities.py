@@ -214,6 +214,49 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> p
     return matrix
 
 
+def is_in_defensive_zone(plays_df: pd.DataFrame) -> pd.Series:
+    """
+    A play is in the defensive zone if:
+    - x < 0 and rinkSide = 'left', or
+    - x > 0 and rinkSide = 'right'
+
+    Args:
+        plays_df: Data frame of plays, must include columns ['rinkSide', 'x']
+
+    Returns:
+        Series indicating whether the play is in the defensive zone or not
+    """
+    return (((plays_df['rinkSide'] == 'left') & (plays_df['x'] < 0)) | (
+            (plays_df['rinkSide'] == 'right') & (plays_df['x'] > 0)))
+
+
+def get_non_empty_net_non_shootout_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Return list of non-empty net goals that are not in the shootout period
+
+    Args:
+        plays_df: Data frame of plays
+
+    Returns:
+
+    """
+    return plays_df[
+        (plays_df['event'] == 'Goal') & (plays_df['emptyNet'] != True) & (plays_df['periodType'] != 'SHOOTOUT')]
+
+
+def get_fraction_of_plays_in_defensive_zone_by_game_and_team(plays_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get fraction of plays in defensive zone by game and team
+
+    Args:
+        plays_df: Data frame of plays with column isDefensiveZone added from function is_in_defensive_zone
+
+    Returns:
+        Fraction of plays in defensive zone by gameId and team
+    """
+    return plays_df[['gameId', 'team', 'isDefensiveZone']].groupby(['gameId', 'team']).mean().reset_index()
+
+
 def _get_number_of_seconds_since_period_start(time_string: str) -> int:
     """
     Get number of seconds since period start

@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
+from ift6758.features.incorrect_feature_analysis import incorrect_feature_analysis
 from ift6758.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
@@ -73,10 +74,13 @@ if __name__ == "__main__":
     # Create training and test data frames
     df_train = all_plays_df_filtered[
         (all_plays_df_filtered['season'].isin([20152016, 20162017, 20172018, 20182019])) & (
-                    all_plays_df_filtered['gameType'] == 'R') & (
-                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+                all_plays_df_filtered['gameType'] == 'R') & (
+                all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_regular = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'R') & (
-                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+                all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_playoffs = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'P')]
+
+    # Run incorrect feature analysis and generate the relevant CSVs
+    incorrect_feature_analysis(df_train)
