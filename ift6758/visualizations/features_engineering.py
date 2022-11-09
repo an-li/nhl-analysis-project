@@ -349,7 +349,7 @@ def empty_goal_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
     if plot:
         plt.show()
     if save:
-        fig.savefig(path_to_save + "shots_and_goals_by_distance.png")
+        fig.savefig(path_to_save + "empty_goal_by_distance.png")
     if save or plot:
         plt.close()
     return (distinct_distances_empty, Buts_vide, distinct_distances_not_empty, Buts_non_vide)
