@@ -33,14 +33,9 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df = pd.concat([plays_to_frame(get_game_data(str(game_id))) for game_id in schedule_df['gamePk']],
                              ignore_index=True)
 
-    all_plays_df.loc[all_plays_df['teamType'] == 'home', 'rinkSide'] = all_plays_df['home.rinkSide']
-    all_plays_df.loc[all_plays_df['teamType'] == 'away', 'rinkSide'] = all_plays_df['away.rinkSide']
-
-    # For shootout plays, if the target is on the right, the team is on the left and vice versa
-    all_plays_df.loc[
-        (all_plays_df['about.periodType'] == 'SHOOTOUT') & (all_plays_df['coordinates.x'] >= 0), 'rinkSide'] = 'left'
-    all_plays_df.loc[
-        (all_plays_df['about.periodType'] == 'SHOOTOUT') & (all_plays_df['coordinates.x'] < 0), 'rinkSide'] = 'right'
+    # Join rinkside information with plays
+    rinkside_information = _get_rinkside_information_by_game_team_and_period(all_plays_df)
+    all_plays_df = all_plays_df.merge(rinkside_information, how='left', on=['gameId', 'about.period', 'team.name'])
 
     # Add the position of opponent's goal depending on the rink side
     # Goal line is 11 ft from center ice, or 89 ft from center ice (coordinates: (0, 0))
@@ -101,6 +96,28 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
 
     # Finally, sort combined play data in increasing gameId then eventIdx order
     return all_plays_df.sort_values(by=['gameId', 'eventIdx'], kind='mergesort').reset_index(drop=True)
+
+
+def _get_rinkside_information_by_game_team_and_period(all_plays_df):
+    """
+    Get rinkside information by game, team and period by taking the mean x-coordinate of all shots and goals
+    The team plays on the right for that period when the mean x-coordinate of shots is less than 0, and vice versa
+
+    Args:
+        all_plays_df: Data frame of plays containing at least columns 'gameId', 'about.period', 'team.name', 'coordinates.x'
+
+    Returns:
+        Rink side information by game, period and team name
+    """
+
+    rinkside_information = all_plays_df.loc[
+        all_plays_df['result.event'].isin(['Shot', 'Goal']), ['gameId', 'about.period', 'team.name',
+                                                              'coordinates.x']].groupby(
+        ['gameId', 'about.period', 'team.name']).median().reset_index()
+    rinkside_information['rinkSide'] = np.where(rinkside_information['coordinates.x'] < 0, 'right', 'left')
+    rinkside_information.drop(columns=['coordinates.x'], inplace=True)
+
+    return rinkside_information
 
 
 def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
