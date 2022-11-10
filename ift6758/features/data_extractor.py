@@ -111,9 +111,10 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
     - 'prevX' and 'prevY': Coordinates of previous event
     - 'prevAngleWithGoal': Shot angle of previous event
     - 'rebound' (bool): True if previous event was a shot by the same team, False otherwise
-    - 'distanceFromPrev': Distance from current event to previous one
-    - 'speed': Speed (distance since previous event / seconds since previous event) in ft/s
-    - 'changeOfAngleFromPrev': Shot angle change from current event to previous one in deg/s
+    - 'secondsSincePrev': Seconds since last event
+    - 'distanceFromPrev': Distance between current event and previous one
+    - 'speed': Speed (distance from previous event / seconds from previous event) in ft/s
+    - 'changeOfAngleFromPrev': Shot angle change between current event and previous one in deg/s
 
     Args:
         plays_df: Data frame containing all plays
