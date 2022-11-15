@@ -242,7 +242,7 @@ def baseline_distance_angle(df: pd.DataFrame, save: bool = True, plot: bool = Tr
     '''
     
     #Filter training set on features of interest 
-    df_filtered = df_train[['isGoal', 'distanceToGoal', 'angleWithGoal']]
+    df_filtered_3 = df_train[['isGoal', 'distanceToGoal', 'angleWithGoal']]
     
     #Split to training and validation set 
     train, test = train_test_split(df_filtered_3, test_size=0.33, random_state=42)
