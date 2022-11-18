@@ -63,23 +63,11 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     df['season'] = live_data['gameData']['game']['season']
     df['gameType'] = live_data['gameData']['game']['type']
 
-    # Assign team types
-    df.loc[df['team.id'] == live_data['gameData']['teams']['home']['id'], 'teamType'] = 'home'
-    df.loc[df['team.id'] == live_data['gameData']['teams']['away']['id'], 'teamType'] = 'away'
-
-    # Join with period information to get the rink side for regular and overtime plays
-    df_ro = df[df['about.periodType'].isin(['REGULAR', 'OVERTIME'])].merge(
-        pd.json_normalize(live_data['liveData']['linescore']['periods']), left_on='about.period',
-        right_on='num', copy=False)
-
     # Add seconds since game start, which is ((period number - 1) × 1200) + number of seconds since period start
-    df_ro['secondsSinceStart'] = np.add(df_ro['about.periodTime'].apply(_get_number_of_seconds_since_period_start),
-                                        np.multiply(np.subtract(df_ro['about.period'], 1), 1200))
+    df['secondsSinceStart'] = np.add(df['about.periodTime'].apply(_get_number_of_seconds_since_period_start),
+                                     np.multiply(np.subtract(df['about.period'], 1), 1200))
 
-    # As period info does not exist in the JSON for shootout periods, that part is isolated from the rest of the plays
-    df_so = df[df['about.periodType'] == 'SHOOTOUT']
-
-    return pd.concat([df_ro, df_so])
+    return df
 
 
 def extract_players(plays_df: pd.DataFrame) -> pd.DataFrame:
@@ -212,6 +200,49 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> p
                          values=percentages_by_coordinate[values_label], aggfunc='mean').fillna(0)
 
     return matrix
+
+
+def is_in_defensive_zone(plays_df: pd.DataFrame) -> pd.Series:
+    """
+    A play is in the defensive zone if:
+    - x < 0 and rinkSide = 'left', or
+    - x > 0 and rinkSide = 'right'
+
+    Args:
+        plays_df: Data frame of plays, must include columns ['rinkSide', 'x']
+
+    Returns:
+        Series indicating whether the play is in the defensive zone or not
+    """
+    return (((plays_df['rinkSide'] == 'left') & (plays_df['x'] < 0)) | (
+            (plays_df['rinkSide'] == 'right') & (plays_df['x'] > 0)))
+
+
+def get_non_empty_net_non_shootout_goals(plays_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Return list of non-empty net goals that are not in the shootout period
+
+    Args:
+        plays_df: Data frame of plays
+
+    Returns:
+
+    """
+    return plays_df[
+        (plays_df['event'] == 'Goal') & (plays_df['emptyNet'] != True) & (plays_df['periodType'] != 'SHOOTOUT')]
+
+
+def get_fraction_of_plays_in_defensive_zone_by_game_and_team(plays_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get fraction of plays in defensive zone by game and team
+
+    Args:
+        plays_df: Data frame of plays with column isDefensiveZone added from function is_in_defensive_zone
+
+    Returns:
+        Fraction of plays in defensive zone by gameId and team
+    """
+    return plays_df[['gameId', 'team', 'isDefensiveZone']].groupby(['gameId', 'team']).mean().reset_index()
 
 
 def _get_number_of_seconds_since_period_start(time_string: str) -> int:

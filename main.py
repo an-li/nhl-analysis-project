@@ -4,7 +4,11 @@ from datetime import datetime
 import pandas as pd
 
 from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
+from ift6758.features.feature_engineering import log_dataframe_profile
+from ift6758.features.incorrect_feature_analysis import incorrect_feature_analysis
 from ift6758.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
+from ift6758.visualizations.features_engineering import shots_and_goals_by_distance, shots_and_goals_by_angles, \
+    shots_by_angles_and_distance, goal_ratio_by_distance, goal_ratio_by_angles, empty_goal_by_distance
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
 
@@ -73,10 +77,24 @@ if __name__ == "__main__":
     # Create training and test data frames
     df_train = all_plays_df_filtered[
         (all_plays_df_filtered['season'].isin([20152016, 20162017, 20172018, 20182019])) & (
-                    all_plays_df_filtered['gameType'] == 'R') & (
-                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+                all_plays_df_filtered['gameType'] == 'R') & (
+                all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_regular = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'R') & (
-                    all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+                all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
     df_test_playoffs = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'P')]
+
+    # Run incorrect feature analysis and generate the relevant CSVs
+    incorrect_feature_analysis(df_train)
+
+    print("Generating features engineering visualizations...")
+    shots_and_goals_by_distance(df_train, plot=False, path_to_save="./figures/")
+    shots_and_goals_by_angles(df_train, plot=False, path_to_save="./figures/")
+    shots_by_angles_and_distance(df_train, plot=False, path_to_save="./figures/")
+    goal_ratio_by_distance(df_train, plot=False, path_to_save="./figures/")
+    goal_ratio_by_angles(df_train, plot=False, path_to_save="./figures/")
+    empty_goal_by_distance(df_train, plot=False, path_to_save="./figures/")
+
+    log_dataframe_profile(df_train[df_train['gameId'] == 2017021065], 'feature_engineering_data',
+                          'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
