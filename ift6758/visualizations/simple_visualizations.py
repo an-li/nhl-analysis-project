@@ -12,7 +12,8 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
 
     Args : 
         - plays_df : DataFrame obtained by 'play_by_play' function
-        - season : season of your choice (between 2016 and 2021) -> example : 20162017 
+        - season : season of your choice (between 2016 and 2021) -> example : 20162017
+        - save : Boolean to choose to save the figure
         - plot : choose to plot the figure or not
         - path_to_save : path where to save the figure
 
