@@ -101,7 +101,7 @@ if __name__ == "__main__":
     #log_dataframe_profile(df_train[df_train['gameId'] == 2017021065], 'feature_engineering_data',
                           #'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
 
-    x, y, x_val, y_val, models = baseline_models(df_train)
+    (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet')
     baseline_roc_auc(y_val, models, plot=False, path_to_save="./figures/")
     baseline_goal_rate(y_val, models, plot=False, path_to_save="./figures/")
     baseline_goal_rate_cumulative(y_val, models, plot=False, path_to_save="./figures/")

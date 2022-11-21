@@ -2,17 +2,23 @@ from ift6758.baseline.model_utilities import *
 import random
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
+from comet_ml import Experiment
+import pickle
+import os
 
 
-def baseline_models(df_train: pd.DataFrame) :
+def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, comet : bool = True) :
     '''
     Baseline models (logistic regression)
     
     Args : 
-        - df_train : training set
+        df_train : training set
+        project_name: Name of project
+        workspace: Name of workspace
+        commet: Bool to decide to register model on comet or not
 
     Return :
-        Data for train and validation and dictionary of all predictions and probabilities for each model
+        Data for train and validation, dictionary of all predictions and probabilities for each model and all commet experiments
     '''
 
     # Filtering and balancing dataframe
@@ -21,8 +27,17 @@ def baseline_models(df_train: pd.DataFrame) :
 
     model_list = [["distanceToGoal"], ["angleWithGoal"], ["distanceToGoal", "angleWithGoal"]]
     models = {}
+    experiments = {}
 
     for i in model_list :
+        if comet :
+            experiment = Experiment(
+                api_key=os.environ.get('COMET_API_KEY'),
+                project_name=project_name,
+                workspace=workspace
+            )
+            experiment.set_name("LogisticRegression_" + "_".join(i))
+            experiments["LogisticRegression_" + "_".join(i)] = experiment
         # Define data for train and validation
         x, y, x_val, y_val = get_train_validation(df_filtered, i, ["isGoal"], 0.2)
         
@@ -32,21 +47,28 @@ def baseline_models(df_train: pd.DataFrame) :
 
         # train model
         clf.fit(x, y.reshape(len(y)))
+        pickle.dump(clf, open("ift6758/models/LogisticRegression_" + "_".join(i) + ".pkl", "wb"))
+        if comet :
+            experiment.log_model("LogisticRegression_" + "_".join(i), "ift6758/models/LogisticRegression_" + "_".join(i) + ".pkl")
         
         #score model (training set)
         score_training = clf.score(x, y)
-        print("Training score for LogisticRegression based on ", " and ".join(i), ": ", score_training)
+        if comet :
+            experiment.log_metric("train_score", score_training)
         
         # score model (validation set)
         score_validation = clf.score(x_val, y_val)
-        print("Validation score for LogisticRegression based on ", " and ".join(i), ": ", score_validation)
-        print("---------------------------------------------------------------")
+        if comet :
+            experiment.log_metric("validation_score", score_validation)
         
         # Class predictions and probabilities 
         val_preds = clf.predict(x_val)
         score_prob = clf.predict_proba(x_val)[:, 1]
         models[" and ".join(i)] = {"val_preds" : val_preds, "score_prob" : score_prob}
-    return x, y, x_val, y_val, models
+
+        if comet :
+            experiment.log_confusion_matrix(y_val, val_preds.astype('int32'))
+    return (x, y, x_val, y_val), models, experiments
 
 
 
@@ -85,6 +107,8 @@ def baseline_roc_auc(y_val : np.array, models : dict, save: bool = True, plot: b
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
+    #if comet :
+    #    experiment.log_figure("ROC curve", fig)
     if plot:
         plt.show()
     if save:
