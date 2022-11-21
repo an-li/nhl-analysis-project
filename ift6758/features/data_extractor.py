@@ -100,8 +100,8 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
 
 def _get_rinkside_information_by_game_team_and_period(all_plays_df):
     """
-    Get rinkside information by game, team and period by taking the mean x-coordinate of all shots and goals
-    The team plays on the right for that period when the mean x-coordinate of shots is less than 0, and vice versa
+    Get rinkside information by game, team and period by taking the median x-coordinate of all shots and goals
+    The team plays on the right for that period when the median x-coordinate of shots is less than 0, and vice versa
 
     Args:
         all_plays_df: Data frame of plays containing at least columns 'gameId', 'about.period', 'team.name', 'coordinates.x'
