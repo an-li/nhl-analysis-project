@@ -6,6 +6,7 @@ seaborn
 requests
 opencv-python
 orjson
+retry
 tqdm
 lxml
 plotly
