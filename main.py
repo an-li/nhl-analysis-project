@@ -11,8 +11,8 @@ from ift6758.visualizations.features_engineering import shots_and_goals_by_dista
     shots_by_angles_and_distance, goal_ratio_by_distance, goal_ratio_by_angles, empty_goal_by_distance
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
-from ift6758.baseline.baseline import baseline_models, baseline_roc_auc, baseline_goal_rate, \
-    baseline_goal_rate_cumulative, baseline_calibration
+from ift6758.baseline.baseline import baseline_models
+from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration
 
 if __name__ == "__main__":
     start_date = datetime(2015, 10, 7)  # Start of 2015-2016
@@ -102,7 +102,7 @@ if __name__ == "__main__":
                           #'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
 
     (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet')
-    baseline_roc_auc(y_val, models, plot=False, path_to_save="./figures/")
-    baseline_goal_rate(y_val, models, plot=False, path_to_save="./figures/")
-    baseline_goal_rate_cumulative(y_val, models, plot=False, path_to_save="./figures/")
-    baseline_calibration(y_val, models, plot=False, path_to_save="./figures/")
+    roc_auc_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
+    goal_rate_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
+    goal_rate_cumulative_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
+    calibration(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
