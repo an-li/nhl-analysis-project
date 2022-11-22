@@ -15,4 +15,5 @@ ipykernel
 jupyterlab>=3.0.0
 setuptools
 comet_ml
+imblearn
 xgboost
