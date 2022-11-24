@@ -25,10 +25,10 @@ feature = ['speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound',
 
     
 
-def prep_data():
+def prep_data(year_list = [20152016, 20162017, 20172018, 20182019], gametype = 'R'):
     df = pd.read_csv('../ift6758/data/extracted/shot_goal_20151007_20210707.csv')
 
-    df_dropped = df[(df['season'].isin([20152016, 20162017, 20172018, 20182019])) & (df['gameType'] == 'R') & (
+    df_dropped = df[(df['season'].isin(year_list)) & (df['gameType'] == gametype) & (
                 df['periodType'] != 'SHOOTOUT')]
 
     df_filtered = df_dropped[['speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound', 'distanceFromPrev'
