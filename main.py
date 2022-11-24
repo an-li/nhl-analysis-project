@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 
 from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
 from ift6758.features.feature_engineering import log_dataframe_profile
@@ -12,6 +13,7 @@ from ift6758.visualizations.features_engineering import shots_and_goals_by_dista
 from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
 from ift6758.baseline.baseline import baseline_models
+from ift6758.xgboost.xgboost import best_hyperparameters, xgboost_model
 from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration
 
 if __name__ == "__main__":
@@ -101,8 +103,33 @@ if __name__ == "__main__":
     #log_dataframe_profile(df_train[df_train['gameId'] == 2017021065], 'feature_engineering_data',
                           #'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
 
-    (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet')
+    print("Baseline model...")
+    (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet', comet=False)
     roc_auc_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     goal_rate_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     goal_rate_cumulative_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     calibration(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
+
+    print("XGBoost simple model...")
+    features = ['isGoal', 'distanceToGoal', 'angleWithGoal']
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_distanceToGoal_angleWithGoal', 'xgboost_models', 'ift6758a-a22-g3-projet', comet=False)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
+
+    print("XGBoost all features model...")
+    df_train.loc[:, 'strength'] = df_train['strength'].fillna('Even')
+
+    features = ['isGoal', 'speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound', 'distanceFromPrev', 
+                'secondsSincePrev', 'prevAngleWithGoal', 'prevY', 'prevX', 'prevEvent', 'prevSecondsSinceStart',
+                'angleWithGoal', 'distanceToGoal', 'x', 'y', 'emptyNet', 'strength', 'secondsSinceStart', 'shotType']
+    xgb_best_model = best_hyperparameters(method="random", n_iter=5)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_All_Features', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, comet=False)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
+
+
+

@@ -1,4 +1,5 @@
 from ift6758.utilities.model_utilities import *
+from sklearn.linear_model import LogisticRegression
 from comet_ml import Experiment
 import pickle
 import os
@@ -41,10 +42,10 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
         
         
         # Instanciate a logistic regression model
-        clf = LogisticRegression()
+        clf = LogisticRegression(random_state=42)
 
         # train model
-        clf.fit(x, y.reshape(len(y)))
+        clf.fit(x, y)
         pickle.dump(clf, open("ift6758/models/LogisticRegression_" + "_".join(i) + ".pkl", "wb"))
         
         #score model (training set)
@@ -64,7 +65,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
             experiment.log_metric("train_score", score_training)
             experiment.log_metric("validation_score", score_validation)
             experiment.log_metric("f1_score", f1)
-            experiment.log_confusion_matrix(y_val, val_preds.astype('int32'))
+            experiment.log_confusion_matrix(y_val.astype('int32'), val_preds.astype('int32'))
     return (x, y, x_val, y_val), models, experiments
     
     
