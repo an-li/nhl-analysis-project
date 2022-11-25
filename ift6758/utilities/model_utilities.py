@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 import random
 
+from imblearn.over_sampling import RandomOverSampler
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.calibration import calibration_curve, CalibrationDisplay
 from sklearn.metrics import roc_curve, auc, f1_score, confusion_matrix, ConfusionMatrixDisplay
@@ -86,7 +87,7 @@ def recursive_best_features(model, x: np.array, y: np.array, min_features: int =
 
 
 
-def get_train_validation(df : pd.DataFrame, data_features : list, labels_features : list, val_ratio : float, balanced : bool = True) :
+def get_train_validation(df : pd.DataFrame, data_features : list, labels_features : list, val_ratio : float, balanced : bool = True, sampling='under') :
     """
     Get train and validation dataset. You can choose the size of each dataset and the column for labels and data.
 
@@ -96,6 +97,7 @@ def get_train_validation(df : pd.DataFrame, data_features : list, labels_feature
     	labels_features: List of columns to be use for labels
     	val_ratio: Size of the validation dataset
     	balanced: Booléan to tell the function to balanced data or not
+    	sampling: Sampling method to use (over for oversampling, under for undersampling)
     Returns:
     	x_train, y_train, x_val, y_val
     """
@@ -105,8 +107,11 @@ def get_train_validation(df : pd.DataFrame, data_features : list, labels_feature
 
     x = train[data_features].to_numpy().reshape(-1, len(data_features))
     y = train[labels_features].to_numpy().reshape(-1)
-    if balanced :
-    	x, y = RandomUnderSampler(random_state=42).fit_resample(x, y)
+    if balanced:
+        if sampling == 'under':
+    	    x, y = RandomUnderSampler(random_state=42).fit_resample(x, y)
+        elif sampling == 'over':
+            x, y = RandomOverSampler(random_state=42).fit_resample(x, y)
 
     x_val = val[data_features].to_numpy().reshape(-1, len(data_features))
     y_val = val[labels_features].to_numpy().reshape(-1)
