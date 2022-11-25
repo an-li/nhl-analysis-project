@@ -261,7 +261,7 @@ if __name__ == "__main__":
                                                         'ift6758a-a22-g3-projet', net_adam,
                                                         torch.optim.Adam(net_adam.parameters(),
                                                                          lr=hyper_params['learning_rate']),
-                                                        hyper_params, comet=False)
+                                                        hyper_params, comet=True)
     roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                   model_name="MLP1")
     goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
@@ -286,11 +286,11 @@ if __name__ == "__main__":
                                                         torch.optim.SGD(net_sgd.parameters(),
                                                                         lr=hyper_params['learning_rate'],
                                                                         momentum=hyper_params['momentum']),
-                                                        hyper_params, comet=False)
+                                                        hyper_params, comet=True)
 
     print("k-NN model with 2 neighbors...")
     hyper_params = {
         "n_neighbors": 2
     }
     (x, y, x_val, y_val), model, experiment = knn_model(df_train.copy(), features, 'knn', 'custom-models',
-                                                        'ift6758a-a22-g3-projet', hyper_params, comet=False)
+                                                        'ift6758a-a22-g3-projet', hyper_params, comet=True)
