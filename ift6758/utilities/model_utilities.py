@@ -4,10 +4,13 @@ import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 import random
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.calibration import calibration_curve, CalibrationDisplay
 from sklearn.metrics import roc_curve, auc, f1_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.feature_selection import SequentialFeatureSelector, SelectKBest, chi2, f_classif, \
+    mutual_info_classif, RFECV
 from imblearn.under_sampling import RandomUnderSampler
+from operator import itemgetter
 
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
@@ -17,17 +20,19 @@ import seaborn as sns
 sns.set()
 
 def prepare_df(df : pd.DataFrame, features : list) :
-	"""
-	Prepare data frame to be use. This function permite to only keep columns that we want and to balanced data if necessary.
+    """
+    Prepare data frame to be use. This function permite to only keep columns that we want and to balanced data if necessary.
 
-	Args:
-		df: Data frame for the model
-		features: List of columns names of features we want to keep
-	Returns:
-		Data frame 
-	"""
-	df_dropped = df[(df['gameType'] == 'R') & (df['periodType'] != 'SHOOTOUT')]
-	return df_dropped[features]
+    Args:
+    	df: Data frame for the model
+    	features: List of columns names of features we want to keep
+    Returns:
+    	Data frame 
+    """
+    df_dropped = df[(df['gameType'] == 'R') & (df['periodType'] != 'SHOOTOUT')]
+    df_dropped.loc[:, 'strength'] = df_dropped['strength'].fillna('Even')
+    return df_dropped[features]
+
 
 def one_hot_encode_features(df : pd.DataFrame, features : list) :
     """
@@ -46,6 +51,41 @@ def one_hot_encode_features(df : pd.DataFrame, features : list) :
     return df
 
 
+def select_k_best_features(score_func, x: np.array, x_test: np.array, y: np.array, k: int = 10) :
+    """
+    Features selection using f_classif
+
+    Args:
+        score_func: function for classification
+        x: train values
+        x_test: test values
+        y: train labels
+        k: number of features to select
+    Returns:
+        new_x_train and new_x_test with features
+    """
+    t = SelectKBest(score_func=score_func, k=k).fit(x, y)
+    new_x_train = t.transform(x)
+    new_x_test = t.transform(x_test)
+    return new_x_train, new_x_test
+
+def recursive_best_features(model, x: np.array, y: np.array, min_features: int = 1) :
+    """
+    Recursive Features selection
+
+    Args:
+        model: model to select features on
+        x: train values
+        y: train labels
+        min_features: minimum number of features to select
+    Returns:
+        new_x_train and new_x_test with features
+    """
+    rfecv = RFECV(estimator=model, scoring="roc_auc", min_features_to_select=min_features)
+    return rfecv
+
+
+
 def get_train_validation(df : pd.DataFrame, data_features : list, labels_features : list, val_ratio : float, balanced : bool = True) :
     """
     Get train and validation dataset. You can choose the size of each dataset and the column for labels and data.
@@ -60,6 +100,8 @@ def get_train_validation(df : pd.DataFrame, data_features : list, labels_feature
     	x_train, y_train, x_val, y_val
     """
     train, val = train_test_split(df, test_size=val_ratio, random_state=42)
+    train = train.dropna()
+    val = val.dropna()
 
     x = train[data_features].to_numpy().reshape(-1, len(data_features))
     y = train[labels_features].to_numpy().reshape(-1)
@@ -70,12 +112,12 @@ def get_train_validation(df : pd.DataFrame, data_features : list, labels_feature
     y_val = val[labels_features].to_numpy().reshape(-1)
     return x, y, x_val, y_val
 
-def goal_rate(predictions : np.array, score_prob : np.array, bin_size : int) :
+def goal_rate(labels : np.array, score_prob : np.array, bin_size : int) :
 	"""
 	Get data to make goal rate graphic ans cumulative graphic. You can choose the size of the bins of percentage.
 
 	Args:
-		predictions: Predictions from the model
+		labels: labels from the model
 		score_prob: Probabilities of predictions
 		bin_size: Size of bins of percentage
 	Returns:
@@ -89,7 +131,7 @@ def goal_rate(predictions : np.array, score_prob : np.array, bin_size : int) :
 	total_goal = 0
 	goal_array = []
 	for i in range(0, 100, bin_size) :
-	    sub_array = predictions[np.logical_and(score_prob >= np.percentile(score_prob, i), score_prob < np.percentile(score_prob, i+bin_size))]
+	    sub_array = labels[np.logical_and(score_prob >= np.percentile(score_prob, i), score_prob < np.percentile(score_prob, i+bin_size))]
 	    goals = np.count_nonzero(sub_array)
 	    shots = sub_array.size - goals
 	    sub_final = goals / (shots + goals)
@@ -186,7 +228,7 @@ def goal_rate_curve(y_val : np.array, models : dict, model_name : str, add_rando
     
     fig, ax = plt.subplots(figsize=[14, 8])
     for i in models :
-        rate_array, index_array, goal_array, total_goal = goal_rate(models[i]["val_preds"], models[i]["score_prob"], 5)
+        rate_array, index_array, goal_array, total_goal = goal_rate(y_val, models[i]["score_prob"], 5)
         ax.plot(index_array, rate_array, label=i)
 
     if add_random :
@@ -194,7 +236,7 @@ def goal_rate_curve(y_val : np.array, models : dict, model_name : str, add_rando
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
         score_prob = np.array(score_prob)
-        val_preds = (score_prob >= 0.5).astype('int32')
+        rate_array, index_array, goal_array, total_goal = goal_rate(y_val, score_prob, 5)
         ax.plot(index_array, rate_array, label= "Random Uniform")
     plt.xticks(np.arange(0, 110, 10.0))
     plt.yticks(np.arange(0, 110, 10.0))
@@ -229,7 +271,7 @@ def goal_rate_cumulative_curve(y_val : np.array, models : dict, model_name : str
     
     fig, ax = plt.subplots(figsize=[14, 8])
     for i in models :
-        rate_array, index_array, goal_array, total_goal = goal_rate(models[i]["val_preds"], models[i]["score_prob"], 5)
+        rate_array, index_array, goal_array, total_goal = goal_rate(y_val, models[i]["score_prob"], 5)
         cumulative_array = compute_cumulative(goal_array, total_goal)
         ax.plot(np.flip(index_array), cumulative_array, label=i)
 
@@ -238,7 +280,8 @@ def goal_rate_cumulative_curve(y_val : np.array, models : dict, model_name : str
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
         score_prob = np.array(score_prob)
-        val_preds = (score_prob >= 0.5).astype('int32')
+        rate_array, index_array, goal_array, total_goal = goal_rate(y_val, score_prob, 5)
+        cumulative_array = compute_cumulative(goal_array, total_goal)
         ax.plot(np.flip(index_array), cumulative_array, label="Random Uniform")
     plt.xticks(np.arange(0, 110, 10.0))
     plt.yticks(np.arange(0, 110, 10.0))
