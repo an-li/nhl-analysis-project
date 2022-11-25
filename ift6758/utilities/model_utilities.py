@@ -13,6 +13,8 @@ from sklearn.feature_selection import SequentialFeatureSelector, SelectKBest, ch
 from imblearn.under_sampling import RandomUnderSampler
 from operator import itemgetter
 
+from comet_ml import API
+
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
 import matplotlib.ticker as mtick
@@ -349,3 +351,8 @@ def calibration(y_val : np.array, models : dict, model_name : str, add_random=Tr
         fig.savefig(path_to_save + f"calibration_" + model_name + ".png")
     if save or plot:
         plt.close()
+
+def download_model_from_comet(workspace: str, registry_name: str, version: str, output_path: str = './'):
+    api = API()
+
+    api.download_registry_model(workspace, registry_name, version, output_path=output_path, expand=True)
