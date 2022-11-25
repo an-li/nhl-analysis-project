@@ -1,4 +1,5 @@
 import os
+import pickle
 from datetime import datetime
 
 import pandas as pd
@@ -28,7 +29,8 @@ from ift6758.visualizations.simple_visualizations import shots_efficiency_by_typ
     shots_efficiency_by_type_and_distance
 from ift6758.baseline.baseline import baseline_models
 from ift6758.xgboost.xgboost import best_hyperparameters, xgboost_model
-from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration
+from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration, \
+    download_model_from_comet
 
 if __name__ == "__main__":
     start_date = datetime(2015, 10, 7)  # Start of 2015-2016
@@ -262,9 +264,9 @@ if __name__ == "__main__":
                                                         hyper_params, comet=False)
     roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                   model_name="MLP1")
-    goal_rate_curve(model['MLP1']['values'], model, add_random=False, plot=False, path_to_save="./figures/",
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                     model_name="MLP1")
-    goal_rate_cumulative_curve(model['MLP1']['values'], model, add_random=False, plot=False, path_to_save="./figures/",
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                                model_name="MLP1")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="MLP1")
