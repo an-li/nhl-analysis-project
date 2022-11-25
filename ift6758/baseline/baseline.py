@@ -66,6 +66,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
             experiment.log_metric("validation_score", score_validation)
             experiment.log_metric("f1_score", f1)
             experiment.log_confusion_matrix(y_val.astype('int32'), val_preds.astype('int32'))
+            experiment.end()
     return (x, y, x_val, y_val), models, experiments
     
     

@@ -28,3 +28,4 @@ def log_dataframe_profile(df: pd.DataFrame, project_name: str, workspace: str, a
         name=asset_name,
         dataframe_format=dataframe_format  # ensure you set this flag!
     )
+    experiment.end()
