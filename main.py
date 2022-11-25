@@ -287,6 +287,14 @@ if __name__ == "__main__":
                                                                         lr=hyper_params['learning_rate'],
                                                                         momentum=hyper_params['momentum']),
                                                         hyper_params, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="MLP2")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="MLP2")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="MLP2")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="MLP2")
 
     print("k-NN model with 2 neighbors...")
     hyper_params = {
@@ -294,3 +302,11 @@ if __name__ == "__main__":
     }
     (x, y, x_val, y_val), model, experiment = knn_model(df_train.copy(), features, 'knn', 'custom-models',
                                                         'ift6758a-a22-g3-projet', hyper_params, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="knn")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="knn")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="knn")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="knn")
