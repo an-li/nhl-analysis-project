@@ -10,10 +10,7 @@ import os
 def best_hyperparameters(params: dict = {
     'learning_rate' : [0.01, 0.05, 0.1, 0.5],
     'max_depth' : [2, 4, 6, 8, 10],
-    'min_child_weight' : [2, 4],
-    'gamma': [0.0, 0.2, 0.4],
-    'colsample_bytree' : [0.2, 0.4, 0.6], 
-    'n_estimators': [200, 400, 600]}, method: str = "grid", n_iter: int = 10) :
+    'gamma': [0.0, 0.2, 0.4, 0.6, 0.8]}, method: str = "grid", n_iter: int = 10) :
     """
     xgboost best hyperparameters
 
@@ -23,16 +20,20 @@ def best_hyperparameters(params: dict = {
         n_iter: number of iteration for random search
 
     Return :
-        Xgboost model with best hyperparameters
+        Xgboost model with best hyperparameters or Xgboost classifier
     """
+    model = xgb.XGBClassifier(random_state=42)
     if method == "grid" :
-        best_model = GridSearchCV(xgb.XGBClassifier(random_state=42), param_grid=params, scoring='roc_auc')
+        model = GridSearchCV(model, param_grid=params, scoring='roc_auc')
     elif method == "random" :
-        best_model = RandomizedSearchCV(xgb.XGBClassifier(random_state=42), param_distributions=params, n_iter=n_iter, scoring='roc_auc', random_state=42)
-    return best_model
+        model = RandomizedSearchCV(xgb.XGBClassifier(random_state=42), param_distributions=params, n_iter=n_iter, scoring='roc_auc', random_state=42)
+    return model
 
 
-def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, project_name: str, workspace: str, model = xgb.XGBClassifier(random_state=42), comet: bool = True, balanced: bool = True) :
+def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, project_name: str, workspace: str,
+    model = xgb.XGBClassifier(random_state=42), #hyper parameters
+    features_selection: str = None, score_func = None, k: int = 10, min_features: int = 1, #features selection
+    comet: bool = True, balanced: bool = True) :
     '''
     xgboost models with all features
     
@@ -42,6 +43,8 @@ def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, proje
         model_name: name of the model
         project_name: Name of project
         workspace: Name of workspace
+        model: modele of xgboost classifier to use
+        features_selection: choose to d
         commet: Bool to decide to register model on comet or not
         balanced: Booléan to tell the function to balanced data or not
 
@@ -66,13 +69,17 @@ def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, proje
     f_remove = features
     f_remove.remove("isGoal")
     x, y, x_val, y_val = get_train_validation(df_filtered, f_remove, ["isGoal"], 0.2, balanced)
+    if features_selection == "k_best" :
+        x, x_val = select_k_best_features(score_func, x, x_val, y, k)
     
     # Instanciate a logistic regression model
     clf = model
+    if features_selection == "recursive" :
+        clf = recursive_best_features(clf, x, y, min_features)
 
     # train model
     clf.fit(x, y)
-    pickle.dump(clf, open("ift6758/models/" + model_name + ".pkl", "wb"))
+    pickle.dump(clf, open("./models/" + model_name + ".pkl", "wb"))
 
     #get hyperparameters
     params = clf.get_params
@@ -88,10 +95,10 @@ def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, proje
     score_prob = clf.predict_proba(x_val)[:, 1]
     f1 = f1_score(y_val, val_preds, average="macro")
     model = {}
-    model[model_name] = {"val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
+    model[model_name] = {"model" : clf, "val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
 
     if comet :
-        experiment.log_model(model_name, "ift6758/models/" + model_name + ".pkl")
+        experiment.log_model(model_name, "./models/" + model_name + ".pkl")
         experiment.log_parameters(params)
         experiment.log_metric("train_score", score_training)
         experiment.log_metric("validation_score", score_validation)

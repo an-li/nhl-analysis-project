@@ -46,7 +46,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
 
         # train model
         clf.fit(x, y)
-        pickle.dump(clf, open("ift6758/models/LogisticRegression_" + "_".join(i) + ".pkl", "wb"))
+        pickle.dump(clf, open("./models/LogisticRegression_" + "_".join(i) + ".pkl", "wb"))
         
         #score model (training set)
         score_training = clf.score(x, y)
@@ -61,7 +61,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
         models["LogisticRegression_" + "_".join(i)] = {"val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
 
         if comet :
-            experiment.log_model("LogisticRegression_" + "_".join(i), "ift6758/models/LogisticRegression_" + "_".join(i) + ".pkl")
+            experiment.log_model("LogisticRegression_" + "_".join(i), "./models/LogisticRegression_" + "_".join(i) + ".pkl")
             experiment.log_metric("train_score", score_training)
             experiment.log_metric("validation_score", score_validation)
             experiment.log_metric("f1_score", f1)

@@ -4,6 +4,13 @@ from datetime import datetime
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set()
+
+from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
+
 from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
 from ift6758.features.feature_engineering import log_dataframe_profile
 from ift6758.features.incorrect_feature_analysis import incorrect_feature_analysis
@@ -100,11 +107,11 @@ if __name__ == "__main__":
     goal_ratio_by_angles(df_train, plot=False, path_to_save="./figures/")
     empty_goal_by_distance(df_train, plot=False, path_to_save="./figures/")
 
-    #log_dataframe_profile(df_train[df_train['gameId'] == 2017021065], 'feature_engineering_data',
-                          #'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
+    log_dataframe_profile(df_train[df_train['gameId'] == 2017021065], 'feature_engineering_data',
+                          'ift6758a-a22-g3-projet', 'wpg_v_wsh_2017021065', 'csv')
 
     print("Baseline model...")
-    (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet', comet=False)
+    (x, y, x_val, y_val), models, experiments = baseline_models(df_train, 'baseline_models', 'ift6758a-a22-g3-projet', comet=True)
     roc_auc_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     goal_rate_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     goal_rate_cumulative_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
@@ -112,24 +119,82 @@ if __name__ == "__main__":
 
     print("XGBoost simple model...")
     features = ['isGoal', 'distanceToGoal', 'angleWithGoal']
-    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_distanceToGoal_angleWithGoal', 'xgboost_models', 'ift6758a-a22-g3-projet', comet=False)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_distanceToGoal_angleWithGoal', 'xgboost_models', 'ift6758a-a22-g3-projet', comet=True)
     roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
     goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
     goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
 
-    print("XGBoost all features model...")
-    df_train.loc[:, 'strength'] = df_train['strength'].fillna('Even')
-
     features = ['isGoal', 'speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound', 'distanceFromPrev', 
                 'secondsSincePrev', 'prevAngleWithGoal', 'prevY', 'prevX', 'prevEvent', 'prevSecondsSinceStart',
                 'angleWithGoal', 'distanceToGoal', 'x', 'y', 'emptyNet', 'strength', 'secondsSinceStart', 'shotType']
+
+    df_mat = df_train[features]
+    df_mat['strength'] = df_mat['strength'].fillna('Even')
+    dummy_object = pd.get_dummies(df_mat[['strength', 'shotType', 'prevEvent']])
+    df_mat = df_mat.merge(dummy_object, left_index=True, right_index=True)
+    df_mat = df_mat.drop(labels = ['strength', 'shotType', 'prevEvent'], axis = 1)
+    df_mat = df_mat.dropna(how='any')
+    corr = df_mat.corr()
+    fig, ax = plt.subplots(figsize=[23, 19])
+    sns.heatmap(corr, center= 0, cmap= 'coolwarm')
+    plt.title("Matrice de corrélation des features générés")
+    fig.savefig("./figures/correlation_matrix.png")
+    plt.close()
+
+    print("XGBoost all features model...")
     xgb_best_model = best_hyperparameters(method="random", n_iter=5)
-    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_All_Features', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, comet=False)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_All_Features', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, comet=True)
     roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
     goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
     goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="all_features_xgboost")
 
+    print("XGBoost KBest features selection k=15, score_func=f_classif...")
+    xgb_best_model = best_hyperparameters(method="random", n_iter=5)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_KBest_15_f_classif', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, features_selection="k_best", score_func=f_classif, k=15, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_f_classif_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_f_classif_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_f_classif_xgboost")
+
+    print("XGBoost KBest features selection k=25, score_func=f_classif...")
+    xgb_best_model = best_hyperparameters(method="random", n_iter=5)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_KBest_25_f_classif', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, features_selection="k_best", score_func=f_classif, k=25, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_f_classif_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_f_classif_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_f_classif_xgboost")
+
+    print("XGBoost KBest features selection k=15, score_func=mutual_info_classif...")
+    xgb_best_model = best_hyperparameters(method="random", n_iter=5)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_KBest_15_mutual_info_classif', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, features_selection="k_best", score_func=mutual_info_classif, k=15, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_mutual_info_classif_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_mutual_info_classif_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_mutual_info_classif_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_15_mutual_info_classif_xgboost")
+
+    print("XGBoost KBest features selection k=25, score_func=mutual_info_classif...")
+    xgb_best_model = best_hyperparameters(method="random", n_iter=5)
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_KBest_25_mutual_info_classif', 'xgboost_models', 'ift6758a-a22-g3-projet', xgb_best_model, features_selection="k_best", score_func=mutual_info_classif, k=25, comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_mutual_info_classif_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_mutual_info_classif_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_mutual_info_classif_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="kbest_25_mutual_info_classif_xgboost")
+
+    print("XGBoost Recursive features selection...")
+    (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_Recursive', 'xgboost_models', 'ift6758a-a22-g3-projet', features_selection="recursive", comet=True)
+    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="recursive_xgboost")
+    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="recursive_xgboost")
+    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="recursive_xgboost")
+    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="recursive_xgboost")
+    fig, ax = plt.subplots(figsize=[14, 8])
+    plt.plot(range(1, len(model["XGBoost_Recursive"]["model"].grid_scores_) + 1), model["XGBoost_Recursive"]["model"].grid_scores_)
+    plt.title("Cross validation score according to the number of features, for the 5-fold")
+    plt.xlabel("Number of features selected")
+    plt.ylabel("Cross validation score (accuracy)")
+    plt.legend(["1st fold", "2nd fold", "3d fold", "4th fold", "5th fold"])
+    fig.savefig("./figures/recursive_features_selection_cv_curve.png")
+    plt.close()
 
 
