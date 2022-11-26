@@ -1,5 +1,4 @@
 import os
-import pickle
 from datetime import datetime
 
 import pandas as pd
@@ -152,8 +151,10 @@ if __name__ == "__main__":
     val_preds_poff_d = LR_d.predict(x_test_poff)
     score_prob_reg_d = LR_d.predict_proba(x_test_reg)[:, 1]
     score_prob_poff_d = LR_d.predict_proba(x_test_poff)[:, 1]
-    test_reg_models["LogisticRegression_distanceToGoal"] = {"model" : LR_d, "val_preds" : val_preds_reg_d, "score_prob" : score_prob_reg_d}
-    test_poff_models["LogisticRegression_distanceToGoal"] = {"model" : LR_d, "val_preds" : val_preds_poff_d, "score_prob" : score_prob_poff_d}
+    test_reg_models["LogisticRegression_distanceToGoal"] = {"model": LR_d, "val_preds": val_preds_reg_d,
+                                                            "score_prob": score_prob_reg_d}
+    test_poff_models["LogisticRegression_distanceToGoal"] = {"model": LR_d, "val_preds": val_preds_poff_d,
+                                                             "score_prob": score_prob_poff_d}
 
     x_test_reg = df_test_regular["angleWithGoal"].to_numpy().reshape(-1, 1)
     x_test_poff = df_test_playoffs["angleWithGoal"].to_numpy().reshape(-1, 1)
@@ -161,8 +162,10 @@ if __name__ == "__main__":
     val_preds_poff_a = LR_a.predict(x_test_poff)
     score_prob_reg_a = LR_a.predict_proba(x_test_reg)[:, 1]
     score_prob_poff_a = LR_a.predict_proba(x_test_poff)[:, 1]
-    test_reg_models["LogisticRegression_angleWithGoal"] = {"model" : LR_a, "val_preds" : val_preds_reg_a, "score_prob" : score_prob_reg_a}
-    test_poff_models["LogisticRegression_angleWithGoal"] = {"model" : LR_a, "val_preds" : val_preds_poff_a, "score_prob" : score_prob_poff_a}
+    test_reg_models["LogisticRegression_angleWithGoal"] = {"model": LR_a, "val_preds": val_preds_reg_a,
+                                                           "score_prob": score_prob_reg_a}
+    test_poff_models["LogisticRegression_angleWithGoal"] = {"model": LR_a, "val_preds": val_preds_poff_a,
+                                                            "score_prob": score_prob_poff_a}
 
     x_test_reg = df_test_regular[["distanceToGoal", "angleWithGoal"]].to_numpy().reshape(-1, 2)
     x_test_poff = df_test_playoffs[["distanceToGoal", "angleWithGoal"]].to_numpy().reshape(-1, 2)
@@ -170,18 +173,28 @@ if __name__ == "__main__":
     val_preds_poff_da = LR_da.predict(x_test_poff)
     score_prob_reg_da = LR_da.predict_proba(x_test_reg)[:, 1]
     score_prob_poff_da = LR_da.predict_proba(x_test_poff)[:, 1]
-    test_reg_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model" : LR_da, "val_preds" : val_preds_reg_da, "score_prob" : score_prob_reg_da}
-    test_poff_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model" : LR_da, "val_preds" : val_preds_poff_da, "score_prob" : score_prob_poff_da}
+    test_reg_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model": LR_da, "val_preds": val_preds_reg_da,
+                                                                          "score_prob": score_prob_reg_da}
+    test_poff_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model": LR_da,
+                                                                           "val_preds": val_preds_poff_da,
+                                                                           "score_prob": score_prob_poff_da}
 
-    roc_auc_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
-    goal_rate_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
-    goal_rate_cumulative_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
+    roc_auc_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/",
+                  model_name="test_regular_baseline")
+    goal_rate_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/",
+                    model_name="test_regular_baseline")
+    goal_rate_cumulative_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/",
+                               model_name="test_regular_baseline")
     calibration(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
 
-    roc_auc_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
-    goal_rate_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
-    goal_rate_cumulative_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
-    calibration(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
+    roc_auc_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/",
+                  model_name="test_playoffs_baseline")
+    goal_rate_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/",
+                    model_name="test_playoffs_baseline")
+    goal_rate_cumulative_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/",
+                               model_name="test_playoffs_baseline")
+    calibration(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/",
+                model_name="test_playoffs_baseline")
 
     print("XGBoost simple model...")
     features = ['isGoal', 'distanceToGoal', 'angleWithGoal']
@@ -192,7 +205,7 @@ if __name__ == "__main__":
     goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                                model_name="simple_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
-    
+
     features = ['isGoal', 'speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound', 'distanceFromPrev',
                 'secondsSincePrev', 'prevAngleWithGoal', 'prevY', 'prevX', 'prevEvent', 'prevSecondsSinceStart',
                 'angleWithGoal', 'distanceToGoal', 'x', 'y', 'emptyNet', 'strength', 'secondsSinceStart', 'shotType']
@@ -253,7 +266,7 @@ if __name__ == "__main__":
                                model_name="kbest_25_f_classif_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="kbest_25_f_classif_xgboost")
-    
+
     print("XGBoost KBest features selection k=25, score_func=f_classif test...")
     xgb_model = model["XGBoost_KBest_25_f_classif"]["model"]
     kept_features = model["XGBoost_KBest_25_f_classif"]["features"]
@@ -275,18 +288,28 @@ if __name__ == "__main__":
     val_preds_poff_d = xgb_model.predict(x_test_poff)
     score_prob_reg_d = xgb_model.predict_proba(x_test_reg)[:, 1]
     score_prob_poff_d = xgb_model.predict_proba(x_test_poff)[:, 1]
-    test_reg_models["LogisticRegression_distanceToGoal"] = {"model" : xgb_model, "val_preds" : val_preds_reg_d, "score_prob" : score_prob_reg_d}
-    test_poff_models["LogisticRegression_distanceToGoal"] = {"model" : xgb_model, "val_preds" : val_preds_poff_d, "score_prob" : score_prob_poff_d}
+    test_reg_models["LogisticRegression_distanceToGoal"] = {"model": xgb_model, "val_preds": val_preds_reg_d,
+                                                            "score_prob": score_prob_reg_d}
+    test_poff_models["LogisticRegression_distanceToGoal"] = {"model": xgb_model, "val_preds": val_preds_poff_d,
+                                                             "score_prob": score_prob_poff_d}
 
-    roc_auc_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
-    goal_rate_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
-    goal_rate_cumulative_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
-    calibration(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
+    roc_auc_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="test_regular_kbest_25_f_classif_xgboost")
+    goal_rate_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="test_regular_kbest_25_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="test_regular_kbest_25_f_classif_xgboost")
+    calibration(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="test_regular_kbest_25_f_classif_xgboost")
 
-    roc_auc_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
-    goal_rate_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
-    goal_rate_cumulative_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
-    calibration(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    roc_auc_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    goal_rate_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    calibration(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="test_playoffs_kbest_25_f_classif_xgboost")
 
     print("XGBoost KBest features selection k=15, score_func=mutual_info_classif...")
     xgb_best_model = best_hyperparameters(method="random", n_iter=5)

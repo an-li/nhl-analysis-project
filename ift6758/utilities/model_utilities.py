@@ -1,30 +1,24 @@
 import pickle
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import sklearn.metrics as metrics
 import random
 
-from imblearn.over_sampling import RandomOverSampler
-from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.calibration import calibration_curve, CalibrationDisplay
-from sklearn.metrics import roc_curve, auc, f1_score, confusion_matrix, ConfusionMatrixDisplay
-from sklearn.feature_selection import SequentialFeatureSelector, SelectKBest, chi2, f_classif, \
-    mutual_info_classif, RFECV
-from imblearn.under_sampling import RandomUnderSampler
-from operator import itemgetter
-
-from comet_ml import API
-
 import matplotlib.lines as mlines
-import matplotlib.transforms as mtransforms
+import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import numpy as np
+import pandas as pd
 import seaborn as sns
+import sklearn.metrics as metrics
+from comet_ml import API
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.calibration import calibration_curve
+from sklearn.feature_selection import SelectKBest, RFECV
+from sklearn.model_selection import train_test_split
 
 sns.set()
 
-def prepare_df(df : pd.DataFrame, features : list, game_type: str = 'R') :
+
+def prepare_df(df: pd.DataFrame, features: list, game_type: str = 'R'):
     """
     Prepare data frame to be use. This function permite to only keep columns that we want and to balanced data if necessary.
 
@@ -40,7 +34,7 @@ def prepare_df(df : pd.DataFrame, features : list, game_type: str = 'R') :
     return df_dropped[features]
 
 
-def one_hot_encode_features(df : pd.DataFrame, features : list) :
+def one_hot_encode_features(df: pd.DataFrame, features: list):
     """
     Encode features that are not usable as they are
 
@@ -50,13 +44,14 @@ def one_hot_encode_features(df : pd.DataFrame, features : list) :
     Returns:
         Data frame 
     """
-    if features != [] :
+    if features != []:
         dummy_object = pd.get_dummies(df[features])
         df_encoded = df.merge(dummy_object, left_index=True, right_index=True)
-        return df_encoded.drop(labels = features, axis = 1)
+        return df_encoded.drop(labels=features, axis=1)
     return df
 
-def filter_and_one_hot_encode_features(data, features, game_type = 'R'):
+
+def filter_and_one_hot_encode_features(data, features, game_type='R'):
     """
     Filter and one hot encode features
 
@@ -75,7 +70,8 @@ def filter_and_one_hot_encode_features(data, features, game_type = 'R'):
 
     return df_filtered
 
-def select_k_best_features(score_func, x: np.array, x_test: np.array, y: np.array, k: int = 10) :
+
+def select_k_best_features(score_func, x: np.array, x_test: np.array, y: np.array, k: int = 10):
     """
     Features selection using f_classif
 
@@ -93,7 +89,8 @@ def select_k_best_features(score_func, x: np.array, x_test: np.array, y: np.arra
     new_x_test = t.transform(x_test)
     return new_x_train, new_x_test, t
 
-def recursive_best_features(model, x: np.array, y: np.array, min_features: int = 1) :
+
+def recursive_best_features(model, x: np.array, y: np.array, min_features: int = 1):
     """
     Recursive Features selection
 
@@ -109,8 +106,8 @@ def recursive_best_features(model, x: np.array, y: np.array, min_features: int =
     return rfecv
 
 
-
-def get_train_validation(df : pd.DataFrame, data_features : list, labels_features : list, val_ratio : float, balanced : bool = True, sampling='under') :
+def get_train_validation(df: pd.DataFrame, data_features: list, labels_features: list, val_ratio: float,
+                         balanced: bool = True, sampling='under'):
     """
     Get train and validation dataset. You can choose the size of each dataset and the column for labels and data.
 
@@ -131,7 +128,7 @@ def get_train_validation(df : pd.DataFrame, data_features : list, labels_feature
     x, y = split_data_and_labels(train, data_features, labels_features)
     if balanced:
         if sampling == 'under':
-    	    x, y = RandomUnderSampler(random_state=42).fit_resample(x, y)
+            x, y = RandomUnderSampler(random_state=42).fit_resample(x, y)
         elif sampling == 'over':
             x, y = RandomOverSampler(random_state=42).fit_resample(x, y)
 
@@ -145,58 +142,61 @@ def split_data_and_labels(data, data_features, labels_features):
     return x, y
 
 
-def goal_rate(labels : np.array, score_prob : np.array, bin_size : int) :
-	"""
-	Get data to make goal rate graphic ans cumulative graphic. You can choose the size of the bins of percentage.
+def goal_rate(labels: np.array, score_prob: np.array, bin_size: int):
+    """
+    Get data to make goal rate graphic ans cumulative graphic. You can choose the size of the bins of percentage.
 
-	Args:
-		labels: labels from the model
-		score_prob: Probabilities of predictions
-		bin_size: Size of bins of percentage
-	Returns:
-		rate_array: array of goal rate
-		index_rate: index in percentage for each goal rate
-		goal_array: number of goals for each index
-		total_array: total of goals and shots for each index
-	"""
-	rate_array = []
-	index_array = list(range(0, 100, bin_size))
-	total_goal = 0
-	goal_array = []
-	for i in range(0, 100, bin_size) :
-	    sub_array = labels[np.logical_and(score_prob >= np.percentile(score_prob, i), score_prob < np.percentile(score_prob, i+bin_size))]
-	    goals = np.count_nonzero(sub_array)
-	    shots = sub_array.size - goals
-	    sub_final = goals / (shots + goals)
-	    goal_array.append(goals)
-	    total_goal = total_goal + goals
-	    rate_array.append(sub_final*100)
-	return rate_array, index_array, goal_array, total_goal
-
-def compute_cumulative(goal_array : list, total_goal : list):
-	"""
-	Get cumulative data for cumulative goal rate graphic.
-
-	Args:
-		goal_array: number of goals for each index
-		total_array: total of goals and shots for each index
-	Returns:
-		cumlative_array
-	"""
-	cumulative_array = []
-	last_elem = 0
-	for i in np.flip(goal_array):
-	    if total_goal != 0:
-	        current = i / total_goal*100 + last_elem
-	    else:
-	        current = last_elem
-	    cumulative_array.append(current)
-	    
-	    last_elem = current
-	return cumulative_array
+    Args:
+        labels: labels from the model
+        score_prob: Probabilities of predictions
+        bin_size: Size of bins of percentage
+    Returns:
+        rate_array: array of goal rate
+        index_rate: index in percentage for each goal rate
+        goal_array: number of goals for each index
+        total_array: total of goals and shots for each index
+    """
+    rate_array = []
+    index_array = list(range(0, 100, bin_size))
+    total_goal = 0
+    goal_array = []
+    for i in range(0, 100, bin_size):
+        sub_array = labels[np.logical_and(score_prob >= np.percentile(score_prob, i),
+                                          score_prob < np.percentile(score_prob, i + bin_size))]
+        goals = np.count_nonzero(sub_array)
+        shots = sub_array.size - goals
+        sub_final = goals / (shots + goals)
+        goal_array.append(goals)
+        total_goal = total_goal + goals
+        rate_array.append(sub_final * 100)
+    return rate_array, index_array, goal_array, total_goal
 
 
-def roc_auc_curve(y_val : np.array, models : dict, model_name : str, add_random=True, save: bool = True, plot: bool = True, path_to_save: str = "./") :
+def compute_cumulative(goal_array: list, total_goal: list):
+    """
+    Get cumulative data for cumulative goal rate graphic.
+
+    Args:
+        goal_array: number of goals for each index
+        total_array: total of goals and shots for each index
+    Returns:
+        cumlative_array
+    """
+    cumulative_array = []
+    last_elem = 0
+    for i in np.flip(goal_array):
+        if total_goal != 0:
+            current = i / total_goal * 100 + last_elem
+        else:
+            current = last_elem
+        cumulative_array.append(current)
+
+        last_elem = current
+    return cumulative_array
+
+
+def roc_auc_curve(y_val: np.array, models: dict, model_name: str, add_random=True, save: bool = True, plot: bool = True,
+                  path_to_save: str = "./"):
     '''
     plot ROC/AUC 
     
@@ -215,21 +215,21 @@ def roc_auc_curve(y_val : np.array, models : dict, model_name : str, add_random=
     transform = ax.transAxes
     line.set_transform(transform)
     ax.add_line(line)
-    for i in models :
-        #ROC curve and AUC 
+    for i in models:
+        # ROC curve and AUC
         fpr, tpr, threshold = metrics.roc_curve(y_val, models[i]["score_prob"])
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, label= i + ' : AUC = %0.2f' % roc_auc)
+        plt.plot(fpr, tpr, label=i + ' : AUC = %0.2f' % roc_auc)
 
-    if add_random :
+    if add_random:
         score_prob = []
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
         score_prob = np.array(score_prob)
-        #ROC curve and AUC 
+        # ROC curve and AUC
         fpr, tpr, threshold = metrics.roc_curve(y_val, score_prob)
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, label= "Random Uniform" + ' : AUC = %0.2f' % roc_auc)
+        plt.plot(fpr, tpr, label="Random Uniform" + ' : AUC = %0.2f' % roc_auc)
     plt.title('Receiver Operating Characteristic')
     plt.legend(loc='lower right')
     plt.xlim([0, 1])
@@ -245,7 +245,8 @@ def roc_auc_curve(y_val : np.array, models : dict, model_name : str, add_random=
         plt.close()
 
 
-def goal_rate_curve(y_val : np.array, models : dict, model_name : str, add_random=True, save: bool = True, plot: bool = True, path_to_save: str = "./") :
+def goal_rate_curve(y_val: np.array, models: dict, model_name: str, add_random=True, save: bool = True,
+                    plot: bool = True, path_to_save: str = "./"):
     '''
     plot goal rate
     
@@ -258,19 +259,19 @@ def goal_rate_curve(y_val : np.array, models : dict, model_name : str, add_rando
         - plot : choose to plot the figure or not
         - path_to_save : path where to save the figure
     '''
-    
+
     fig, ax = plt.subplots(figsize=[14, 8])
-    for i in models :
+    for i in models:
         rate_array, index_array, goal_array, total_goal = goal_rate(y_val, models[i]["score_prob"], 5)
         ax.plot(index_array, rate_array, label=i)
 
-    if add_random :
+    if add_random:
         score_prob = []
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
         score_prob = np.array(score_prob)
         rate_array, index_array, goal_array, total_goal = goal_rate(y_val, score_prob, 5)
-        ax.plot(index_array, rate_array, label= "Random Uniform")
+        ax.plot(index_array, rate_array, label="Random Uniform")
     plt.xticks(np.arange(0, 110, 10.0))
     plt.yticks(np.arange(0, 110, 10.0))
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
@@ -288,7 +289,8 @@ def goal_rate_curve(y_val : np.array, models : dict, model_name : str, add_rando
         plt.close()
 
 
-def goal_rate_cumulative_curve(y_val : np.array, models : dict, model_name : str, add_random=True, save: bool = True, plot: bool = True, path_to_save: str = "./") :
+def goal_rate_cumulative_curve(y_val: np.array, models: dict, model_name: str, add_random=True, save: bool = True,
+                               plot: bool = True, path_to_save: str = "./"):
     '''
     plot goal rate cumulative
     
@@ -301,14 +303,14 @@ def goal_rate_cumulative_curve(y_val : np.array, models : dict, model_name : str
         - plot : choose to plot the figure or not
         - path_to_save : path where to save the figure
     '''
-    
+
     fig, ax = plt.subplots(figsize=[14, 8])
-    for i in models :
+    for i in models:
         rate_array, index_array, goal_array, total_goal = goal_rate(y_val, models[i]["score_prob"], 5)
         cumulative_array = compute_cumulative(goal_array, total_goal)
         ax.plot(np.flip(index_array), cumulative_array, label=i)
 
-    if add_random :
+    if add_random:
         score_prob = []
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
@@ -333,7 +335,8 @@ def goal_rate_cumulative_curve(y_val : np.array, models : dict, model_name : str
         plt.close()
 
 
-def calibration(y_val : np.array, models : dict, model_name : str, add_random=True, save: bool = True, plot: bool = True, path_to_save: str = "./") :
+def calibration(y_val: np.array, models: dict, model_name: str, add_random=True, save: bool = True, plot: bool = True,
+                path_to_save: str = "./"):
     '''
     plot calibration
     
@@ -346,24 +349,24 @@ def calibration(y_val : np.array, models : dict, model_name : str, add_random=Tr
         - plot : choose to plot the figure or not
         - path_to_save : path where to save the figure
     '''
-    
+
     fig, ax = plt.subplots(figsize=[14, 8])
     line = mlines.Line2D([0, 1], [0, 1], color='black')
     transform = ax.transAxes
     line.set_transform(transform)
     ax.add_line(line)
-    for i in models :
+    for i in models:
         prob_true, prob_pred = calibration_curve(y_val, models[i]["score_prob"], n_bins=10)
         plt.plot(prob_pred, prob_true, marker='o', label=i)
 
-    if add_random :
+    if add_random:
         score_prob = []
         for i in range(len(y_val)):
             score_prob.append(random.uniform(0, 1))
         score_prob = np.array(score_prob)
         prob_true, prob_pred = calibration_curve(y_val, score_prob, n_bins=10)
         plt.plot(prob_pred, prob_true, marker='o', label="Random Uniform")
-    
+
     plt.xticks(np.arange(0, 1.1, 0.1))
     plt.yticks(np.arange(0, 1.1, 0.1))
     plt.title('Calibration')
@@ -377,6 +380,7 @@ def calibration(y_val : np.array, models : dict, model_name : str, add_random=Tr
         fig.savefig(path_to_save + f"calibration_" + model_name + ".png")
     if save or plot:
         plt.close()
+
 
 def download_model_from_comet(workspace: str, registry_name: str, version: str, output_path: str = './'):
     """
@@ -394,6 +398,7 @@ def download_model_from_comet(workspace: str, registry_name: str, version: str, 
     api = API()
 
     api.download_registry_model(workspace, registry_name, version, output_path=output_path, expand=True)
+
 
 def load_model_from_file(path: str):
     """
