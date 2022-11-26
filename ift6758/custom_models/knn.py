@@ -3,7 +3,7 @@ import pickle
 
 import torch
 from comet_ml import Experiment
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from torch import nn
 from torch.autograd import Variable
 from torchmetrics import ConfusionMatrix
