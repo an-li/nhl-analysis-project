@@ -288,9 +288,9 @@ if __name__ == "__main__":
     val_preds_poff_d = xgb_model.predict(x_test_poff)
     score_prob_reg_d = xgb_model.predict_proba(x_test_reg)[:, 1]
     score_prob_poff_d = xgb_model.predict_proba(x_test_poff)[:, 1]
-    test_reg_models["LogisticRegression_distanceToGoal"] = {"model": xgb_model, "val_preds": val_preds_reg_d,
+    test_reg_models["XGBoost_KBest_25_f_classif"] = {"model": xgb_model, "val_preds": val_preds_reg_d,
                                                             "score_prob": score_prob_reg_d}
-    test_poff_models["LogisticRegression_distanceToGoal"] = {"model": xgb_model, "val_preds": val_preds_poff_d,
+    test_poff_models["XGBoost_KBest_25_f_classif"] = {"model": xgb_model, "val_preds": val_preds_poff_d,
                                                              "score_prob": score_prob_poff_d}
 
     roc_auc_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/",
