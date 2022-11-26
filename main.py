@@ -384,6 +384,30 @@ if __name__ == "__main__":
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="MLP1")
 
+    print("MLP model with SGD optimizer...")
+    hyper_params = {
+        "learning_rate": 0.0003,
+        "batch_size": 100,
+        "num_epochs": 25,
+        "momentum": 0.5,
+        "criterion": "BinaryCrossEntropy",
+        "optimizer": "SGD"
+    }
+    net_sgd = NetSGD()
+    (x, y, x_val, y_val), model, experiment = mlp_model(df_train.copy(), features, 'MLP2', 'custom-models',
+                                                        'ift6758a-a22-g3-projet', net_sgd,
+                                                        torch.optim.SGD(net_sgd.parameters(),
+                                                                        lr=hyper_params['learning_rate'],
+                                                                        momentum=hyper_params['momentum']),
+                                                        hyper_params, comet=True)
+
+    print("k-NN model with 2 neighbors...")
+    hyper_params = {
+        "n_neighbors": 2
+    }
+    (x, y, x_val, y_val), model, experiment = knn_model(df_train.copy(), features, 'knn', 'custom-models',
+                                                        'ift6758a-a22-g3-projet', hyper_params, comet=True)
+
     print('Evaluating MLP 1 model on test data set')
     download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
     mlp_model = load_model_from_file('./models/MLP1.sav')
@@ -424,29 +448,3 @@ if __name__ == "__main__":
                                model_name="MLP1_Final_playoffs")
     calibration(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="MLP1_Final_playoffs")
-
-    print("MLP model with SGD optimizer...")
-    hyper_params = {
-        "learning_rate": 0.0003,
-        "batch_size": 100,
-        "num_epochs": 25,
-        "momentum": 0.5,
-        "criterion": "BinaryCrossEntropy",
-        "optimizer": "SGD"
-    }
-    net_sgd = NetSGD()
-    (x, y, x_val, y_val), model, experiment = mlp_model(df_train.copy(), features, 'MLP2', 'custom-models',
-                                                        'ift6758a-a22-g3-projet', net_sgd,
-                                                        torch.optim.SGD(net_sgd.parameters(),
-                                                                        lr=hyper_params['learning_rate'],
-                                                                        momentum=hyper_params['momentum']),
-                                                        hyper_params, comet=True)
-
-    print("k-NN model with 2 neighbors...")
-    hyper_params = {
-        "n_neighbors": 2
-    }
-    (x, y, x_val, y_val), model, experiment = knn_model(df_train.copy(), features, 'knn', 'custom-models',
-                                                        'ift6758a-a22-g3-projet', hyper_params, comet=True)
-
-    download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
