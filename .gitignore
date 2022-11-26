@@ -5,6 +5,8 @@
 *.tar.gz
 *.pkl
 *.json
+*.png
+*.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
