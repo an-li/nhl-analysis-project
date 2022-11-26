@@ -3,6 +3,7 @@ import pickle
 
 import torch
 from comet_ml import Experiment
+from sklearn.metrics import f1_score
 from sklearn.utils import shuffle
 from torch import nn
 from torch.autograd import Variable
