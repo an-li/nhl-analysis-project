@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 
 from ift6758.custom_models.knn import knn_model
-from ift6758.custom_models.mlp import mlp_model
+from ift6758.custom_models.mlp import mlp_model, evaluate_model
 from ift6758.custom_models.net_adam import NetAdam
 from ift6758.custom_models.net_sgd import NetSGD
 
@@ -30,7 +30,7 @@ from ift6758.visualizations.simple_visualizations import shots_efficiency_by_typ
 from ift6758.baseline.baseline import baseline_models
 from ift6758.xgboost.xgboost import best_hyperparameters, xgboost_model
 from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration, \
-    download_model_from_comet
+    download_model_from_comet, filter_and_one_hot_encode_features, split_data_and_labels
 
 if __name__ == "__main__":
     start_date = datetime(2015, 10, 7)  # Start of 2015-2016
@@ -316,3 +316,51 @@ if __name__ == "__main__":
                                model_name="knn")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="knn")
+
+    download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
+
+    file = open('./models/MLP1.sav', 'rb')
+
+    # dump information to that file
+    final_model = pickle.load(file)
+
+    # close the file
+    file.close()
+
+    print('Evaluating models on test data set')
+    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
+    characteristics = list(df_test_regular_filtered.columns)
+    characteristics.remove('isGoal')
+    x_test, y_test = split_data_and_labels(df_test_regular_filtered, characteristics, ['isGoal'])
+    accuracy, f1, result, values = evaluate_model(final_model, x_test, y_test)
+    model = {}
+    model["MLP1_Final_regular"] = {"values": values, "score_prob": result.numpy()}
+    roc_auc_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="MLP1_Final_regular")
+    goal_rate_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="MLP1_Final_regular")
+    goal_rate_cumulative_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="MLP1_Final_regular")
+    calibration(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="MLP1_Final_regular")
+
+    df_test_playoffs_filtered = filter_and_one_hot_encode_features(df_test_playoffs, features, 'P')
+
+    # Add missing characteristics to playoffs
+    df_test_playoffs_filtered['prevEvent_Goal'] = 0
+    df_test_playoffs_filtered['prevEvent_Penalty'] = 0
+
+    characteristics = list(df_test_playoffs_filtered.columns)
+    characteristics.remove('isGoal')
+    x_test_playoffs, y_test_playoffs = split_data_and_labels(df_test_playoffs_filtered, characteristics, ['isGoal'])
+    accuracy, f1, result_playoffs, values_playoffs = evaluate_model(final_model, x_test_playoffs, y_test_playoffs)
+    model = {}
+    model["MLP1_Final_playoffs"] = {"values": values_playoffs, "score_prob": result_playoffs.numpy()}
+    roc_auc_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="MLP1_Final_playoffs")
+    goal_rate_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="MLP1_Final_playoffs")
+    goal_rate_cumulative_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="MLP1_Final_playoffs")
+    calibration(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="MLP1_Final_playoffs")
