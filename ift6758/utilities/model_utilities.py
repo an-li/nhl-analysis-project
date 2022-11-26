@@ -1,3 +1,5 @@
+import pickle
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -377,6 +379,39 @@ def calibration(y_val : np.array, models : dict, model_name : str, add_random=Tr
         plt.close()
 
 def download_model_from_comet(workspace: str, registry_name: str, version: str, output_path: str = './'):
+    """
+    Download model from comet.ml
+
+    Args:
+        workspace: Workspace name
+        registry_name: Registry name
+        version: Version number
+        output_path: Path to output model
+
+    Returns:
+
+    """
     api = API()
 
     api.download_registry_model(workspace, registry_name, version, output_path=output_path, expand=True)
+
+def load_model_from_file(path: str):
+    """
+    Load pickle model from file
+
+    Args:
+        path: Path to model
+
+    Returns:
+        Model loaded using pickle
+    """
+
+    file = open('./models/MLP1.sav', 'rb')
+
+    # dump information to that file
+    model = pickle.load(file)
+
+    # close the file
+    file.close()
+
+    return model

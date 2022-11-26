@@ -30,9 +30,10 @@ from ift6758.visualizations.simple_visualizations import shots_efficiency_by_typ
 from ift6758.baseline.baseline import baseline_models
 from ift6758.xgboost.xgboost import best_hyperparameters, xgboost_model
 from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration, \
-    download_model_from_comet, filter_and_one_hot_encode_features, split_data_and_labels
+    download_model_from_comet, filter_and_one_hot_encode_features, split_data_and_labels, load_model_from_file
 
 if __name__ == "__main__":
+    # Start of Milestone 1
     start_date = datetime(2015, 10, 7)  # Start of 2015-2016
     end_date = datetime(2021, 7, 7)  # End of 2020-2021
 
@@ -94,6 +95,7 @@ if __name__ == "__main__":
                               path_to_save="./figures/") for team in ['Buffalo Sabres', 'Tampa Bay Lightning'] for
      season in [20182019, 20192020, 20202021]]
 
+    # Start of Milestone 2
     # Create training and test data frames
     df_train = all_plays_df_filtered[
         (all_plays_df_filtered['season'].isin([20152016, 20162017, 20172018, 20182019])) & (
@@ -359,12 +361,53 @@ if __name__ == "__main__":
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="MLP1")
 
+    print('Evaluating MLP 1 model on test data set')
+    download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
+    mlp_model = load_model_from_file('./models/MLP1.sav')
+
+    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
+    characteristics = list(df_test_regular_filtered.columns)
+    characteristics.remove('isGoal')
+    x_test, y_test = split_data_and_labels(df_test_regular_filtered, characteristics, ['isGoal'])
+    accuracy, f1, result, values = evaluate_model(mlp_model, x_test, y_test)
+    model = {}
+    model["MLP1_Final_regular"] = {"values": values, "score_prob": result.numpy()}
+    roc_auc_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="MLP1_Final_regular")
+    goal_rate_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="MLP1_Final_regular")
+    goal_rate_cumulative_curve(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="MLP1_Final_regular")
+    calibration(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="MLP1_Final_regular")
+
+    df_test_playoffs_filtered = filter_and_one_hot_encode_features(df_test_playoffs, features, 'P')
+
+    # Add missing characteristics to playoffs
+    df_test_playoffs_filtered['prevEvent_Goal'] = 0
+    df_test_playoffs_filtered['prevEvent_Penalty'] = 0
+
+    characteristics = list(df_test_playoffs_filtered.columns)
+    characteristics.remove('isGoal')
+    x_test_playoffs, y_test_playoffs = split_data_and_labels(df_test_playoffs_filtered, characteristics, ['isGoal'])
+    accuracy, f1, result_playoffs, values_playoffs = evaluate_model(mlp_model, x_test_playoffs, y_test_playoffs)
+    model = {}
+    model["MLP1_Final_playoffs"] = {"values": values_playoffs, "score_prob": result_playoffs.numpy()}
+    roc_auc_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                  model_name="MLP1_Final_playoffs")
+    goal_rate_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                    model_name="MLP1_Final_playoffs")
+    goal_rate_cumulative_curve(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                               model_name="MLP1_Final_playoffs")
+    calibration(y_test_playoffs, model, add_random=False, plot=False, path_to_save="./figures/",
+                model_name="MLP1_Final_playoffs")
+
     print("MLP model with SGD optimizer...")
     hyper_params = {
-        "learning_rate": 0.001,
+        "learning_rate": 0.0003,
         "batch_size": 100,
         "num_epochs": 25,
-        "momentum": 0.9,
+        "momentum": 0.5,
         "criterion": "BinaryCrossEntropy",
         "optimizer": "SGD"
     }
