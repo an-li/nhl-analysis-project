@@ -99,11 +99,17 @@ if __name__ == "__main__":
         (all_plays_df_filtered['season'].isin([20152016, 20162017, 20172018, 20182019])) & (
                 all_plays_df_filtered['gameType'] == 'R') & (
                 all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+
     df_test_regular = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'R') & (
                 all_plays_df_filtered['periodType'] != 'SHOOTOUT')]
+    df_test_regular["emptyNet"] = df_test_regular["emptyNet"].fillna(0)
+    df_test_regular["strength"] = df_test_regular["strength"].fillna('Even')
+
     df_test_playoffs = all_plays_df_filtered[
         (all_plays_df_filtered['season'] == 20192020) & (all_plays_df_filtered['gameType'] == 'P')]
+    df_test_playoffs["emptyNet"] = df_test_playoffs["emptyNet"].fillna(0)
+    df_test_playoffs["strength"] = df_test_playoffs["strength"].fillna('Even')
 
     # Run incorrect feature analysis and generate the relevant CSVs
     incorrect_feature_analysis(df_train)
