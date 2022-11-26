@@ -89,7 +89,7 @@ def select_k_best_features(score_func, x: np.array, x_test: np.array, y: np.arra
     t = SelectKBest(score_func=score_func, k=k).fit(x, y)
     new_x_train = t.transform(x)
     new_x_test = t.transform(x_test)
-    return new_x_train, new_x_test
+    return new_x_train, new_x_test, t
 
 def recursive_best_features(model, x: np.array, y: np.array, min_features: int = 1) :
     """

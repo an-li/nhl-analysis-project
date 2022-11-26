@@ -58,7 +58,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
         val_preds = clf.predict(x_val)
         score_prob = clf.predict_proba(x_val)[:, 1]
         f1 = f1_score(y_val, val_preds, average="macro")
-        models["LogisticRegression_" + "_".join(i)] = {"val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
+        models["LogisticRegression_" + "_".join(i)] = {"model" : clf, "val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
 
         if comet :
             experiment.log_model("LogisticRegression_" + "_".join(i), "./models/LogisticRegression_" + "_".join(i) + ".pkl")

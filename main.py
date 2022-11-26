@@ -133,6 +133,54 @@ if __name__ == "__main__":
     goal_rate_cumulative_curve(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
     calibration(y_val, models, plot=False, path_to_save="./figures/", model_name="baseline")
 
+    print("Baseline test...")
+    LR_d = models["LogisticRegression_distanceToGoal"]["model"]
+    LR_a = models["LogisticRegression_angleWithGoal"]["model"]
+    LR_da = models["LogisticRegression_distanceToGoal_angleWithGoal"]["model"]
+
+    test_reg_models = {}
+    test_poff_models = {}
+
+    y_test_reg = df_test_regular["isGoal"].to_numpy().reshape(-1)
+    y_test_poff = df_test_playoffs["isGoal"].to_numpy().reshape(-1)
+
+    x_test_reg = df_test_regular["distanceToGoal"].to_numpy().reshape(-1, 1)
+    x_test_poff = df_test_playoffs["distanceToGoal"].to_numpy().reshape(-1, 1)
+    val_preds_reg_d = LR_d.predict(x_test_reg)
+    val_preds_poff_d = LR_d.predict(x_test_poff)
+    score_prob_reg_d = LR_d.predict_proba(x_test_reg)[:, 1]
+    score_prob_poff_d = LR_d.predict_proba(x_test_poff)[:, 1]
+    test_reg_models["LogisticRegression_distanceToGoal"] = {"model" : LR_d, "val_preds" : val_preds_reg_d, "score_prob" : score_prob_reg_d}
+    test_poff_models["LogisticRegression_distanceToGoal"] = {"model" : LR_d, "val_preds" : val_preds_poff_d, "score_prob" : score_prob_poff_d}
+
+    x_test_reg = df_test_regular["angleWithGoal"].to_numpy().reshape(-1, 1)
+    x_test_poff = df_test_playoffs["angleWithGoal"].to_numpy().reshape(-1, 1)
+    val_preds_reg_a = LR_a.predict(x_test_reg)
+    val_preds_poff_a = LR_a.predict(x_test_poff)
+    score_prob_reg_a = LR_a.predict_proba(x_test_reg)[:, 1]
+    score_prob_poff_a = LR_a.predict_proba(x_test_poff)[:, 1]
+    test_reg_models["LogisticRegression_angleWithGoal"] = {"model" : LR_a, "val_preds" : val_preds_reg_a, "score_prob" : score_prob_reg_a}
+    test_poff_models["LogisticRegression_angleWithGoal"] = {"model" : LR_a, "val_preds" : val_preds_poff_a, "score_prob" : score_prob_poff_a}
+
+    x_test_reg = df_test_regular[["distanceToGoal", "angleWithGoal"]].to_numpy().reshape(-1, 2)
+    x_test_poff = df_test_playoffs[["distanceToGoal", "angleWithGoal"]].to_numpy().reshape(-1, 2)
+    val_preds_reg_da = LR_da.predict(x_test_reg)
+    val_preds_poff_da = LR_da.predict(x_test_poff)
+    score_prob_reg_da = LR_da.predict_proba(x_test_reg)[:, 1]
+    score_prob_poff_da = LR_da.predict_proba(x_test_poff)[:, 1]
+    test_reg_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model" : LR_da, "val_preds" : val_preds_reg_da, "score_prob" : score_prob_reg_da}
+    test_poff_models["LogisticRegression_distanceToGoal_angleWithGoal"] = {"model" : LR_da, "val_preds" : val_preds_poff_da, "score_prob" : score_prob_poff_da}
+
+    roc_auc_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
+    goal_rate_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
+    goal_rate_cumulative_curve(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
+    calibration(y_test_reg, test_reg_models, plot=False, path_to_save="./figures/", model_name="test_regular_baseline")
+
+    roc_auc_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
+    goal_rate_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
+    goal_rate_cumulative_curve(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
+    calibration(y_test_poff, test_poff_models, plot=False, path_to_save="./figures/", model_name="test_playoffs_baseline")
+
     print("XGBoost simple model...")
     features = ['isGoal', 'distanceToGoal', 'angleWithGoal']
     (x, y, x_val, y_val), model, experiment = xgboost_model(df_train, features, 'XGBoost_distanceToGoal_angleWithGoal',
@@ -142,7 +190,7 @@ if __name__ == "__main__":
     goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                                model_name="simple_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/", model_name="simple_xgboost")
-
+    
     features = ['isGoal', 'speedOfChangeOfAngle', 'speed', 'changeOfAngleFromPrev', 'rebound', 'distanceFromPrev',
                 'secondsSincePrev', 'prevAngleWithGoal', 'prevY', 'prevX', 'prevEvent', 'prevSecondsSinceStart',
                 'angleWithGoal', 'distanceToGoal', 'x', 'y', 'emptyNet', 'strength', 'secondsSinceStart', 'shotType']
@@ -203,6 +251,40 @@ if __name__ == "__main__":
                                model_name="kbest_25_f_classif_xgboost")
     calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="kbest_25_f_classif_xgboost")
+    
+    print("XGBoost KBest features selection k=25, score_func=f_classif test...")
+    xgb_model = model["XGBoost_KBest_25_f_classif"]["model"]
+    kept_features = model["XGBoost_KBest_25_f_classif"]["features"]
+
+    test_reg_models = {}
+    test_poff_models = {}
+
+    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
+    y_test_reg = df_test_regular_filtered["isGoal"].to_numpy().reshape(-1)
+    df_test_playoffs_filtered = filter_and_one_hot_encode_features(df_test_playoffs, features, 'P')
+    # Add missing characteristics to playoffs
+    df_test_playoffs_filtered['prevEvent_Goal'] = 0
+    df_test_playoffs_filtered['prevEvent_Penalty'] = 0
+    y_test_poff = df_test_playoffs_filtered["isGoal"].to_numpy().reshape(-1)
+
+    x_test_reg = df_test_regular_filtered[kept_features].to_numpy().reshape(-1, 25)
+    x_test_poff = df_test_playoffs_filtered[kept_features].to_numpy().reshape(-1, 25)
+    val_preds_reg_d = xgb_model.predict(x_test_reg)
+    val_preds_poff_d = xgb_model.predict(x_test_poff)
+    score_prob_reg_d = xgb_model.predict_proba(x_test_reg)[:, 1]
+    score_prob_poff_d = xgb_model.predict_proba(x_test_poff)[:, 1]
+    test_reg_models["LogisticRegression_distanceToGoal"] = {"model" : xgb_model, "val_preds" : val_preds_reg_d, "score_prob" : score_prob_reg_d}
+    test_poff_models["LogisticRegression_distanceToGoal"] = {"model" : xgb_model, "val_preds" : val_preds_poff_d, "score_prob" : score_prob_poff_d}
+
+    roc_auc_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
+    goal_rate_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
+    calibration(y_test_reg, test_reg_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_regular_kbest_25_f_classif_xgboost")
+
+    roc_auc_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    goal_rate_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    goal_rate_cumulative_curve(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
+    calibration(y_test_poff, test_poff_models, add_random=False, plot=False, path_to_save="./figures/", model_name="test_playoffs_kbest_25_f_classif_xgboost")
 
     print("XGBoost KBest features selection k=15, score_func=mutual_info_classif...")
     xgb_best_model = best_hyperparameters(method="random", n_iter=5)
@@ -293,14 +375,6 @@ if __name__ == "__main__":
                                                                         lr=hyper_params['learning_rate'],
                                                                         momentum=hyper_params['momentum']),
                                                         hyper_params, comet=True)
-    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                  model_name="MLP2")
-    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                    model_name="MLP2")
-    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                               model_name="MLP2")
-    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                model_name="MLP2")
 
     print("k-NN model with 2 neighbors...")
     hyper_params = {
@@ -308,14 +382,6 @@ if __name__ == "__main__":
     }
     (x, y, x_val, y_val), model, experiment = knn_model(df_train.copy(), features, 'knn', 'custom-models',
                                                         'ift6758a-a22-g3-projet', hyper_params, comet=True)
-    roc_auc_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                  model_name="knn")
-    goal_rate_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                    model_name="knn")
-    goal_rate_cumulative_curve(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                               model_name="knn")
-    calibration(y_val, model, add_random=False, plot=False, path_to_save="./figures/",
-                model_name="knn")
 
     download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
 
@@ -328,7 +394,6 @@ if __name__ == "__main__":
     file.close()
 
     print('Evaluating models on test data set')
-    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
     characteristics = list(df_test_regular_filtered.columns)
     characteristics.remove('isGoal')
     x_test, y_test = split_data_and_labels(df_test_regular_filtered, characteristics, ['isGoal'])
@@ -343,12 +408,6 @@ if __name__ == "__main__":
                                model_name="MLP1_Final_regular")
     calibration(y_test, model, add_random=False, plot=False, path_to_save="./figures/",
                 model_name="MLP1_Final_regular")
-
-    df_test_playoffs_filtered = filter_and_one_hot_encode_features(df_test_playoffs, features, 'P')
-
-    # Add missing characteristics to playoffs
-    df_test_playoffs_filtered['prevEvent_Goal'] = 0
-    df_test_playoffs_filtered['prevEvent_Penalty'] = 0
 
     characteristics = list(df_test_playoffs_filtered.columns)
     characteristics.remove('isGoal')

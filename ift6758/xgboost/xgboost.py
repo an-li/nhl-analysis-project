@@ -69,8 +69,12 @@ def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, proje
     f_remove = features
     f_remove.remove("isGoal")
     x, y, x_val, y_val = get_train_validation(df_filtered, f_remove, ["isGoal"], 0.2, balanced)
+    kept_features = f_remove
     if features_selection == "k_best" :
-        x, x_val = select_k_best_features(score_func, x, x_val, y, k)
+        x, x_val, t = select_k_best_features(score_func, x, x_val, y, k)
+        df_kept_features = pd.DataFrame({'Features': f_remove,
+                              'Features selected': t.get_support()})
+        kept_features = list((df_kept_features[df_kept_features['Features selected'] == True])["Features"])
     
     # Instanciate a logistic regression model
     clf = model
@@ -95,7 +99,7 @@ def xgboost_model(df_train: pd.DataFrame, features: list, model_name: str, proje
     score_prob = clf.predict_proba(x_val)[:, 1]
     f1 = f1_score(y_val, val_preds, average="macro")
     model = {}
-    model[model_name] = {"model" : clf, "val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1}
+    model[model_name] = {"model" : clf, "val_preds" : val_preds, "score_prob" : score_prob, "f1" : f1, "features" : kept_features}
 
     if comet :
         experiment.log_model(model_name, "./models/" + model_name + ".pkl")
