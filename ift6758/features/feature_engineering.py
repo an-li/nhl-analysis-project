@@ -22,8 +22,10 @@ def log_dataframe_profile(df: pd.DataFrame, project_name: str, workspace: str, a
         project_name=project_name,
         workspace=workspace
     )
+    experiment.set_name("dataframe")
     experiment.log_dataframe_profile(
         dataframe=df,
         name=asset_name,
         dataframe_format=dataframe_format  # ensure you set this flag!
     )
+    experiment.end()
