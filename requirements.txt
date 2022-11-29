@@ -19,3 +19,7 @@ imblearn
 torch
 torchmetrics
 xgboost
+streamlit
+flask
+gunicorn
+scikit-learn
