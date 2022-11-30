@@ -108,9 +108,10 @@ def download_registry_model():
     workspace = content_json['workspace']
     model = content_json['model']
     version = content_json['version']
+    extension = content_json['extension']
 
     # TODO: check to see if the model you are querying for is already downloaded
-    path_to_file = "../models/"+model+".sav"
+    path_to_file = "../models/"+ model + extension
     is_model_on_disk = os.path.exists(path_to_file)
     
 
