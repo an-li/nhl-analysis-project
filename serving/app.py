@@ -136,7 +136,7 @@ def download_registry_model():
 
         try:
             api = API()
-            api.download_registry_model("ift6758a-a22-g3-projet", "MLP1", "1.0.0",
+            api.download_registry_model("ift6758a-a22-g3-projet", "MLP1", "1.0.2",
                                 output_path="../models/", expand=True)
         except:
             current_log = 'Failed downloading the model'
