@@ -16,8 +16,12 @@ import sklearn
 import pandas as pd
 import joblib
 
+import requests
 
-import ift6758
+
+#import ift6758
+
+from waitress import serve
 
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
@@ -25,6 +29,12 @@ LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 
 app = Flask(__name__)
 
+
+@app.route('/ping')
+def do_ping():
+    ping = 'Ping ...'
+
+    return 'Hello World'
 
 @app.before_first_request
 def before_first_request():
@@ -109,3 +119,8 @@ def predict():
 
     app.logger.info(response)
     return jsonify(response)  # response must be json serializable!
+
+
+print('running flask app')
+app.run()
+#serve(app, listen='*:8080')
