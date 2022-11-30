@@ -97,6 +97,7 @@ def download_registry_model():
     # Get POST json data
     try:
         content_json = request.get_json()
+        app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
         response_data = auto_log(json_format_error, app, is_print=True)
@@ -168,16 +169,31 @@ def predict():
     Returns predictions
     """
     # Get POST json data
-    json = request.get_json()
-    app.logger.info(json)
-
-    # TODO:
-    raise NotImplementedError("TODO: implement this enpdoint")
+    try:
+        content_json = request.get_json()
+        app.logger.info(json)
+    except:
+        json_format_error = 'JSON file not properly formatted'
+        response_data = auto_log(json_format_error, app, is_print=True)
+        return jsonify(response_data), 400
     
-    response = None
+    # TODO properly parse JSON data, once we know the format
+    x_val = content_json['data']
+
+
+    try:
+        y_pred = loaded_model.predict(x_val)
+    except:
+        current_log = 'X Data was not properly formatted'
+        response_data = auto_log(current_log, app, is_print=True)
+        return jsonify(response_data), 500  
+    
+
+    response = {"Prediction": y_pred}
+
 
     app.logger.info(response)
-    return jsonify(response)  # response must be json serializable!
+    return jsonify(response), 200  # response must be json serializable!
 
 
 print('Running flask app in development mode.')
