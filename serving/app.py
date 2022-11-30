@@ -8,21 +8,21 @@ gunicorn can be installed via:
     $ pip install gunicorn
 
 """
-import os
-from pathlib import Path
-import logging
-from flask import Flask, jsonify, request, abort
 import sklearn
 import pandas as pd
 import joblib
+import os.path
+import pickle
+import os
+import logging
 
-import requests
+from waitress import serve
+from comet_ml import API
+from pathlib import Path
+from flask import Flask, jsonify, request, abort
 
 
 #import ift6758
-
-from waitress import serve
-
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 
@@ -78,27 +78,63 @@ def download_registry_model():
     
     """
     # Get POST json data
-    json = request.get_json()
-    app.logger.info(json)
+    try:
+        content_json = request.get_json()
+    except:
+        json_format_error = 'JSON file not properly formatted'
+        print(json_format_error)
+        response_data = {'error': json_format_error}
+        return jsonify(response_data), 400
+
+
+    print(content_json)
+    
+    workspace = content_json['workspace']
+    model = content_json['model']
+    version = content_json['version']
 
     # TODO: check to see if the model you are querying for is already downloaded
+    path_to_file = "models/"+model+".sav"
+    is_model_on_disk = os.path.exists(path_to_file)
+    
 
     # TODO: if yes, load that model and write to the log about the model change.  
     # eg: app.logger.info(<LOG STRING>)
-    
+    loaded_model = None
+    if is_model_on_disk:
+        print("Model already on disk, not downloading")
+        path_relative_to_file = '../'+path_to_file
+        print(path_relative_to_file)
+        file = open(path_relative_to_file, 'rb')
+        print('ok')
+        loaded_model = pickle.load(file)
+        print('ok2')
+        file.close()
+
+
     # TODO: if no, try downloading the model: if it succeeds, load that model and write to the log
     # about the model change. If it fails, write to the log about the failure and keep the 
     # currently loaded model
+    else:
+        print("Model not on disk, downloading")
+        api = API()
+        api.download_registry_model("ift6758a-a22-g3-projet", "MLP1", "1.0.0",
+                            output_path="../models/", expand=True)
+
+        file = open(path_to_file, 'rb')
+
+        loaded_model = pickle.load(file)
+
+        file.close()
+
 
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
 
-    raise NotImplementedError("TODO: implement this endpoint")
+    response = {'statis': 'model download sucess'}
 
-    response = None
-
-    app.logger.info(response)
-    return jsonify(response)  # response must be json serializable!
+    #app.logger.info(response)
+    return jsonify(response), 200  
 
 
 @app.route("/predict", methods=["POST"])
