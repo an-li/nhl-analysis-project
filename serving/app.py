@@ -110,7 +110,7 @@ def download_registry_model():
     version = content_json['version']
 
     # TODO: check to see if the model you are querying for is already downloaded
-    path_to_file = "models/"+model+".sav"
+    path_to_file = "../models/"+model+".sav"
     is_model_on_disk = os.path.exists(path_to_file)
     
 
@@ -136,7 +136,7 @@ def download_registry_model():
 
         try:
             api = API()
-            api.download_registry_model("ift6758a-a22-g3-projet", "MLP1", "1.0.2",
+            api.download_registry_model(workspace, model, version,
                                 output_path="../models/", expand=True)
         except:
             current_log = 'Failed downloading the model'
@@ -153,7 +153,7 @@ def download_registry_model():
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
 
-    response = {'status': 'model retrival sucessful'}
+    response = {'status': 'model retrieval successful'}
 
     app.logger.info(response)
     return jsonify(response), 200  

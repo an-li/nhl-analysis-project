@@ -44,7 +44,7 @@ def auto_log(log, app, is_print=False):
 
 def load_default_model(app):
     model = "MLP1"
-    path_to_file = "models/"+model+".sav"
+    path_to_file = "../models/"+model+".sav"
     is_model_on_disk = os.path.exists(path_to_file)
     if is_model_on_disk:
         file = open(path_to_file, 'rb')
