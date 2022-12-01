@@ -9,7 +9,7 @@ class AutoLogger:
         self.app = app
 
     def auto_log(self, log, exception=None, is_print=False):
-        if (is_print):
+        if is_print:
             print(log)
             if exception:
                 print(f'Exception: {str(exception)}', file=sys.stderr)
