@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "TODO: fill in the docker build command"
+docker build --tag serving . -f Dockfile.serving
