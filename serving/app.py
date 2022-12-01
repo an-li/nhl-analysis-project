@@ -18,12 +18,13 @@ from waitress import serve
 
 from game_client import load_shots_and_last_event
 from ml_client import *
+from auto_logger import AutoLogger
 
 # import ift6758
 
 # Set up logger
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
+logger = AutoLogger(LOG_FILE, logging.INFO)
 
 loaded_model = None
 
@@ -43,7 +44,7 @@ def before_first_request():
     """
 
     current_log = 'Flask Application Started'
-    response_data = auto_log(current_log, app, is_print=True)
+    response_data = AutoLogger.auto_log(current_log, app, is_print=True)
 
     # TODO: any other initialization before the first request (e.g. load default model)
     loaded_model = load_default_model(app)
@@ -59,7 +60,7 @@ def logs():
             lines = f.readlines()
     except:
         json_format_error = 'cant read flask.log'
-        response_data = auto_log(json_format_error, app, is_print=True)
+        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
 
     count = 0
@@ -96,7 +97,7 @@ def download_registry_model():
         app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = auto_log(json_format_error, app, is_print=True)
+        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
 
     print(content_json)
@@ -114,7 +115,7 @@ def download_registry_model():
     # eg: app.logger.info(<LOG STRING>)
     if is_model_on_disk:
         current_log = 'Model already on disk, not downloading'
-        response_data = auto_log(current_log, app, is_print=True)
+        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
 
         file = open(path_to_file, 'rb')
 
@@ -128,7 +129,7 @@ def download_registry_model():
     # currently loaded model
     else:
         current_log = 'Model not on disk, downloading'
-        response_data = auto_log(current_log, app, is_print=True)
+        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
 
         try:
             api = API()
@@ -136,7 +137,7 @@ def download_registry_model():
                                         expand=True)
         except Exception as e:
             current_log = 'Failed downloading model'
-            response_data = auto_log(current_log, app, e, is_print=True)
+            response_data = AutoLogger.auto_log(current_log, app, e, is_print=True)
             return jsonify(response_data), 500
 
         file = open(path_to_file, 'rb')
@@ -167,7 +168,7 @@ def get_game_data():
             raise
     except:
         invalid_game_id_message = 'Invalid Game ID specified'
-        response_data = auto_log(invalid_game_id_message, app, is_print=True)
+        response_data = AutoLogger.auto_log(invalid_game_id_message, app, is_print=True)
         return jsonify(response_data), 400
 
     try:
@@ -175,7 +176,7 @@ def get_game_data():
         game_data, last_event = load_shots_and_last_event(app, game_id, diff_patch)
     except Exception as e:
         cannot_load_game_data_message = 'Cannot load game data'
-        response_data = auto_log(cannot_load_game_data_message, app, e, is_print=True)
+        response_data = AutoLogger.auto_log(cannot_load_game_data_message, app, e, is_print=True)
         return jsonify(response_data), 400
 
     output = {
@@ -199,7 +200,7 @@ def predict():
         app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = auto_log(json_format_error, app, is_print=True)
+        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
 
     # TODO properly parse JSON data, once we know the format
@@ -209,7 +210,7 @@ def predict():
         y_pred = loaded_model.predict(x_val)
     except:
         current_log = 'X Data was not properly formatted'
-        response_data = auto_log(current_log, app, is_print=True)
+        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
         return jsonify(response_data), 500
 
     response = {"Prediction": y_pred}

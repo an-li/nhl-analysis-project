@@ -1,7 +1,5 @@
-import sys
-import traceback
-
 import seaborn as sns
+from auto_logger import AutoLogger
 
 sns.set()
 
@@ -19,25 +17,6 @@ from flask import jsonify
 import os.path
 
 
-def auto_log(log, app, exception=None, is_print=False):
-    if (is_print):
-        print(log)
-        if exception:
-            print(f'Exception: {str(exception)}', file=sys.stderr)
-            print(f'Stack trace: {traceback.format_exc()}', file=sys.stderr)
-
-    response_data = {'log': log}
-
-    if exception:
-        response_data['exception'] = str(exception)
-        response_data['stack_trace'] = traceback.format_exc()
-        app.logger.error(response_data)
-    else:
-        app.logger.info(response_data)
-
-    return response_data
-
-
 def load_default_model(app):
     model = "XGBoost_KBest_25_mutual_info_classif"
     path_to_file = "./models/" + model + ".pkl"
@@ -53,7 +32,7 @@ def load_default_model(app):
                                         output_path="./models/", expand=True)
         except Exception as e:
             current_log = 'Failed downloading the model'
-            response_data = auto_log(current_log, app, e, is_print=True)
+            response_data = AutoLogger.auto_log(current_log, app, e, is_print=True)
             return jsonify(response_data), 500
 
         file = open(path_to_file, 'rb')
@@ -61,6 +40,6 @@ def load_default_model(app):
         file.close()
 
     current_log = 'Default model loaded'
-    auto_log(current_log, app, is_print=True)
+    AutoLogger.auto_log(current_log, app, is_print=True)
 
     return loaded_model

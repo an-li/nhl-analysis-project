@@ -4,29 +4,11 @@ import traceback
 from ift6758.api.nhl_api_service import get_game_live_feed
 from ift6758.features.data_extractor import add_info_for_games, add_previous_event_for_shots_and_goals
 from ift6758.utilities.game_utilities import plays_to_frame
+from auto_logger import AutoLogger
 
 columns_to_keep = ['team', 'eventIdx', 'event', 'isGoal', 'secondaryType', 'ordinalNum', 'dateTime', 'periodType',
                    'periodTime', 'periodTimeRemaining', 'secondsSinceStart', 'strength', 'emptyNet', 'x', 'y',
                    'rinkSide', 'distanceToGoal', 'angleWithGoal', 'team.away', 'goals.away', 'team.home', 'goals.home']
-
-
-def auto_log(log, app, exception=None, is_print=False):
-    if (is_print):
-        print(log)
-        if exception:
-            print(f'Exception: {str(exception)}', file=sys.stderr)
-            print(f'Stack trace: {traceback.format_exc()}', file=sys.stderr)
-
-    response_data = {'log': log}
-
-    if exception:
-        response_data['exception'] = str(exception)
-        response_data['stack_trace'] = traceback.format_exc()
-        app.logger.error(response_data)
-    else:
-        app.logger.info(response_data)
-
-    return response_data
 
 
 def load_shots_and_last_event(app, game_id, start_timecode):
@@ -42,7 +24,7 @@ def load_shots_and_last_event(app, game_id, start_timecode):
     """
 
     current_log = f'Retrieving data for game {game_id}'
-    auto_log(current_log, app, is_print=True)
+    AutoLogger.auto_log(current_log, app, is_print=True)
 
     plays = plays_to_frame(get_game_live_feed(game_id, start_timecode))
     plays = add_info_for_games(plays, columns_to_keep, [])
@@ -57,6 +39,6 @@ def load_shots_and_last_event(app, game_id, start_timecode):
          'goals.home']].to_dict(orient='records')[0]
 
     current_log = 'Game data loaded successfully'
-    auto_log(current_log, app, is_print=True)
+    AutoLogger.auto_log(current_log, app, is_print=True)
 
     return shots_goals, last_event
