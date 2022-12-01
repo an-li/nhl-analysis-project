@@ -4,11 +4,11 @@ import traceback
 
 
 class AutoLogger:
-    def __init__(self, log_file, level=logging.WARN):
+    def __init__(self, app, log_file, level=logging.WARN):
         logging.basicConfig(filename=log_file, level=level)
+        self.app = app
 
-    @staticmethod
-    def auto_log(log, app, exception=None, is_print=False):
+    def auto_log(self, log, exception=None, is_print=False):
         if (is_print):
             print(log)
             if exception:
@@ -20,8 +20,8 @@ class AutoLogger:
         if exception:
             response_data['exception'] = str(exception)
             response_data['stack_trace'] = traceback.format_exc()
-            app.logger.error(response_data)
+            self.app.logger.error(response_data)
         else:
-            app.logger.info(response_data)
+            self.app.logger.info(response_data)
 
         return response_data

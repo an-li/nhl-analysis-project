@@ -411,7 +411,7 @@ def load_model_from_file(path: str):
         Model loaded using pickle
     """
 
-    file = open('./models/MLP1.sav', 'rb')
+    file = open(path, 'rb')
 
     # dump information to that file
     model = pickle.load(file)

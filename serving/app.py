@@ -12,23 +12,28 @@ import json
 import logging
 import os
 import os.path
+import pickle
 
-from flask import Flask, request
+from comet_ml import API
+from flask import Flask, request, jsonify
 from waitress import serve
 
-from game_client import load_shots_and_last_event
-from ml_client import *
 from auto_logger import AutoLogger
+from game_client import GameClient
+from ml_client import MLClient
 
 # import ift6758
 
+app = Flask(__name__)
+
 # Set up logger
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-logger = AutoLogger(LOG_FILE, logging.INFO)
+logger = AutoLogger(app, LOG_FILE, logging.INFO)
 
 loaded_model = None
 
-app = Flask(__name__)
+game_client = GameClient(logger)
+ml_client = MLClient(logger)
 
 
 @app.route('/ping')
@@ -44,10 +49,10 @@ def before_first_request():
     """
 
     current_log = 'Flask Application Started'
-    response_data = AutoLogger.auto_log(current_log, app, is_print=True)
+    logger.auto_log(current_log, is_print=True)
 
     # TODO: any other initialization before the first request (e.g. load default model)
-    loaded_model = load_default_model(app)
+    loaded_model = ml_client.load_default_model()
 
 
 @app.route("/logs", methods=["GET"])
@@ -60,7 +65,7 @@ def logs():
             lines = f.readlines()
     except:
         json_format_error = 'cant read flask.log'
-        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
+        response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
     count = 0
@@ -87,6 +92,7 @@ def download_registry_model():
             workspace: (required),
             model: (required),
             version: (required),
+            extension: (optional, default: .pkl)
             ... (other fields if needed) ...
         }
     
@@ -97,7 +103,7 @@ def download_registry_model():
         app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
+        response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
     print(content_json)
@@ -105,46 +111,14 @@ def download_registry_model():
     workspace = content_json['workspace']
     model = content_json['model']
     version = content_json['version']
-    extension = content_json['extension']
+    extension = content_json.get('extension', '.pkl')
 
-    # TODO: check to see if the model you are querying for is already downloaded
-    path_to_file = "./models/" + model + extension
-    is_model_on_disk = os.path.exists(path_to_file)
-
-    # TODO: if yes, load that model and write to the log about the model change.  
-    # eg: app.logger.info(<LOG STRING>)
-    if is_model_on_disk:
-        current_log = 'Model already on disk, not downloading'
-        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
-
-        file = open(path_to_file, 'rb')
-
-        loaded_model = pickle.load(file)
-
-        file.close()
-
-
-    # TODO: if no, try downloading the model: if it succeeds, load that model and write to the log
-    # about the model change. If it fails, write to the log about the failure and keep the 
-    # currently loaded model
-    else:
-        current_log = 'Model not on disk, downloading'
-        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
-
-        try:
-            api = API()
-            api.download_registry_model(workspace, model.replace('_', '-'), version, output_path="./models/",
-                                        expand=True)
-        except Exception as e:
-            current_log = 'Failed downloading model'
-            response_data = AutoLogger.auto_log(current_log, app, e, is_print=True)
-            return jsonify(response_data), 500
-
-        file = open(path_to_file, 'rb')
-
-        loaded_model = pickle.load(file)
-
-        file.close()
+    try:
+        loaded_model = ml_client.extract_model_from_file(workspace, model, version, extension, True)
+    except Exception as e:
+        message = f'Cannot load model {model}!'
+        response = logger.auto_log(message, e, True)
+        return jsonify(response), 500
 
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
@@ -168,15 +142,15 @@ def get_game_data():
             raise
     except:
         invalid_game_id_message = 'Invalid Game ID specified'
-        response_data = AutoLogger.auto_log(invalid_game_id_message, app, is_print=True)
+        response_data = logger.auto_log(invalid_game_id_message, is_print=True)
         return jsonify(response_data), 400
 
     try:
         diff_patch = request.args.get("start_timecode")  # Optional parameter
-        game_data, last_event = load_shots_and_last_event(app, game_id, diff_patch)
+        game_data, last_event = game_client.load_shots_and_last_event(game_id, diff_patch)
     except Exception as e:
         cannot_load_game_data_message = 'Cannot load game data'
-        response_data = AutoLogger.auto_log(cannot_load_game_data_message, app, e, is_print=True)
+        response_data = logger.auto_log(cannot_load_game_data_message, e, is_print=True)
         return jsonify(response_data), 400
 
     output = {
@@ -200,7 +174,7 @@ def predict():
         app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = AutoLogger.auto_log(json_format_error, app, is_print=True)
+        response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
     # TODO properly parse JSON data, once we know the format
@@ -210,7 +184,7 @@ def predict():
         y_pred = loaded_model.predict(x_val)
     except:
         current_log = 'X Data was not properly formatted'
-        response_data = AutoLogger.auto_log(current_log, app, is_print=True)
+        response_data = logger.auto_log(current_log, is_print=True)
         return jsonify(response_data), 500
 
     response = {"Prediction": y_pred}
