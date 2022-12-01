@@ -47,6 +47,9 @@ def before_first_request():
     # TODO: setup basic logging configuration
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
+    current_log = 'Flask Application Started'
+    response_data = auto_log(current_log, app, is_print=True)
+
     # TODO: any other initialization before the first request (e.g. load default model)
     loaded_model = load_default_model(app)
 
