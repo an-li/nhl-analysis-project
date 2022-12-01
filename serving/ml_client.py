@@ -48,7 +48,7 @@ class MLClient:
             Model from filesystem or comet.ml
         """
         output_path = './models'
-        path_to_file = output_path + model_name + extension
+        path_to_file = output_path + '/' + model_name + extension
 
         if os.path.exists(path_to_file):
             self.logger.auto_log(f"Model {model_name} on filesystem, loading from file", is_print=True)
