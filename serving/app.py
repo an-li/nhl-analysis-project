@@ -9,9 +9,11 @@ gunicorn can be installed via:
 
 """
 import json
+import logging
 import os
 import os.path
 
+from flask import Flask, request
 from waitress import serve
 
 from game_client import load_shots_and_last_event
@@ -132,9 +134,9 @@ def download_registry_model():
             api = API()
             api.download_registry_model(workspace, model.replace('_', '-'), version, output_path="./models/",
                                         expand=True)
-        except:
-            current_log = 'Failed downloading the model'
-            response_data = auto_log(current_log, app, is_print=True)
+        except Exception as e:
+            current_log = 'Failed downloading model'
+            response_data = auto_log(current_log, app, e, is_print=True)
             return jsonify(response_data), 500
 
         file = open(path_to_file, 'rb')
@@ -171,11 +173,9 @@ def get_game_data():
     try:
         diff_patch = request.args.get("start_timecode")  # Optional parameter
         game_data, last_event = load_shots_and_last_event(app, game_id, diff_patch)
-        current_log = 'Game data loaded successfully'
-        auto_log(current_log, app, is_print=True)
-    except:
+    except Exception as e:
         cannot_load_game_data_message = 'Cannot load game data'
-        response_data = auto_log(cannot_load_game_data_message, app, is_print=True)
+        response_data = auto_log(cannot_load_game_data_message, app, e, is_print=True)
         return jsonify(response_data), 400
 
     output = {

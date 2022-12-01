@@ -42,8 +42,6 @@ WORKDIR /code
 #
 #       CMD <SHELL COMMAND>
 
-
-
 # TODO: add code, optionally a default model if you want 
 WORKDIR /app
 COPY requirements.txt requirements.txt

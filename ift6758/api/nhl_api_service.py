@@ -46,6 +46,8 @@ def get_game_live_feed(game_id: str, start_timecode: str = None) -> dict:
         r = requests.get(url)
         if len(r.content) == 0:
             raise requests.exceptions.RequestException("Cannot decode empty response!")
+        if r.status_code != 200:
+            raise Exception(f'Status code: {r.status_code} Content: {r.content}')
         return r.json()
     except requests.exceptions.RequestException as e:
         print(f'Cannot get feed for game {game_id}, {e}')
