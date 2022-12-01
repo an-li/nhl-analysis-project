@@ -196,6 +196,7 @@ def predict():
     return jsonify(response), 200  # response must be json serializable!
 
 
-print('Running flask app in development mode.')
-app.run()
-#serve(app, listen='*:8080')
+#print('Running flask app in development mode.')
+#app.run()
+print('Running flask app in production mode.')
+serve(app, listen='*:8080')
