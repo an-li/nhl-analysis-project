@@ -15,11 +15,13 @@ sns.set()
 
 import pickle
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+#import torch
+#import torch.nn as nn
+#import torch.nn.functional as F
+#from torch.autograd import Variable
+
 from sklearn.utils import shuffle
-from torch.autograd import Variable
+
 
 import pandas as pd
 import numpy as np
@@ -64,27 +66,3 @@ def load_default_model(app):
         file.close()
     return loaded_model
 
-
-class Net(nn.Module):
-    
-    def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = nn.Linear(35, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, 128)
-        self.fc4 = nn.Linear(128, 1)
-        
-    def forward(self, x):
-        x = self.fc1(x)
-        x = F.relu(x)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-
-        x = self.fc3(x)
-        x = F.relu(x)
-
-        x = self.fc4(x)
-        x = F.sigmoid(x)
-        
-        return x
