@@ -46,7 +46,7 @@ def auto_log(log, app, is_print=False):
 
 def load_default_model(app):
     model = "XGBoost_KBest_25_mutual_info_classif"
-    path_to_file = "../models/"+model+".pkl"
+    path_to_file = "./models/"+model+".pkl"
     is_model_on_disk = os.path.exists(path_to_file)
     if is_model_on_disk:
         file = open(path_to_file, 'rb')
@@ -55,8 +55,8 @@ def load_default_model(app):
     else:
         try:
             api = API()
-            api.download_registry_model("ift6758a-a22-g3-projet", model, "1.0.2",
-                                output_path="../models/", expand=True)
+            api.download_registry_model("ift6758a-a22-g3-projet", model.replace('_', '-'), "1.0.0",
+                                output_path="./models/", expand=True)
         except:
             current_log = 'Failed downloading the model'
             response_data = auto_log(current_log, app, is_print=True)

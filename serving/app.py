@@ -8,23 +8,16 @@ gunicorn can be installed via:
     $ pip install gunicorn
 
 """
-import sklearn
-import pandas as pd
-import joblib
-import os.path
-import pickle
-import os
-import logging
 import json
+import os
+import os.path
 
 from waitress import serve
-from comet_ml import API
-from pathlib import Path
-from flask import Flask, jsonify, request, abort
-from ml_client import *
-from serving.game_client import load_shots_and_last_event
 
-#import ift6758
+from game_client import load_shots_and_last_event
+from ml_client import *
+
+# import ift6758
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 
@@ -36,6 +29,7 @@ app = Flask(__name__)
 @app.route('/ping')
 def do_ping():
     return 'Hello World'
+
 
 @app.before_first_request
 def before_first_request():
@@ -53,11 +47,10 @@ def before_first_request():
     loaded_model = load_default_model(app)
 
 
-
 @app.route("/logs", methods=["GET"])
 def logs():
     """Reads data from the log file and returns them as the response"""
-    
+
     # TODO: read the log file specified and return the data
     try:
         with open("flask.log", "r") as f:
@@ -66,8 +59,7 @@ def logs():
         json_format_error = 'cant read flask.log'
         response_data = auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
-    
-    
+
     count = 0
     dictionary = {}
     for i in lines:
@@ -76,7 +68,7 @@ def logs():
 
     response = json.dumps(dictionary, indent=4)
 
-    return jsonify(response)  
+    return jsonify(response)
 
 
 @app.route("/download_registry_model", methods=["POST"])
@@ -105,18 +97,16 @@ def download_registry_model():
         response_data = auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
 
-
     print(content_json)
-    
+
     workspace = content_json['workspace']
     model = content_json['model']
     version = content_json['version']
     extension = content_json['extension']
 
     # TODO: check to see if the model you are querying for is already downloaded
-    path_to_file = "../models/"+ model + extension
+    path_to_file = "./models/" + model + extension
     is_model_on_disk = os.path.exists(path_to_file)
-    
 
     # TODO: if yes, load that model and write to the log about the model change.  
     # eg: app.logger.info(<LOG STRING>)
@@ -140,12 +130,12 @@ def download_registry_model():
 
         try:
             api = API()
-            api.download_registry_model(workspace, model, version,
-                                output_path="../models/", expand=True)
+            api.download_registry_model(workspace, model.replace('_', '-'), version, output_path="./models/",
+                                        expand=True)
         except:
             current_log = 'Failed downloading the model'
             response_data = auto_log(current_log, app, is_print=True)
-            return jsonify(response_data), 500  
+            return jsonify(response_data), 500
 
         file = open(path_to_file, 'rb')
 
@@ -153,14 +143,14 @@ def download_registry_model():
 
         file.close()
 
-
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
 
     response = {'status': 'model retrieval successful'}
 
     app.logger.info(response)
-    return jsonify(response), 200  
+    return jsonify(response), 200
+
 
 @app.route("/game_data", methods=["GET"])
 def get_game_data():
@@ -195,6 +185,7 @@ def get_game_data():
 
     return jsonify(output), 200
 
+
 @app.route("/predict", methods=["POST"])
 def predict():
     """
@@ -210,27 +201,24 @@ def predict():
         json_format_error = 'JSON file not properly formatted'
         response_data = auto_log(json_format_error, app, is_print=True)
         return jsonify(response_data), 400
-    
+
     # TODO properly parse JSON data, once we know the format
     x_val = content_json['data']
-
 
     try:
         y_pred = loaded_model.predict(x_val)
     except:
         current_log = 'X Data was not properly formatted'
         response_data = auto_log(current_log, app, is_print=True)
-        return jsonify(response_data), 500  
-    
+        return jsonify(response_data), 500
 
     response = {"Prediction": y_pred}
-
 
     app.logger.info(response)
     return jsonify(response), 200  # response must be json serializable!
 
 
-#print('Running flask app in development mode.')
-#app.run()
+# print('Running flask app in development mode.')
+# app.run()
 print('Running flask app in production mode.')
 serve(app, listen='*:8080')

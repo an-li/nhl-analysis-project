@@ -54,6 +54,8 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
+RUN pip3 install -e .
+
 # TODO: expose ports (or do this in docker-compose)
 EXPOSE 8080/tcp
 EXPOSE 8080/udp
@@ -61,4 +63,4 @@ EXPOSE 8080/udp
 # TODO: specify default command - this is not required because you can always specify the command
 # either with the docker run command or in the docker-compose file
 
-CMD [ "python3", "app.py"]
+CMD [ "python3", "serving/app.py"]
