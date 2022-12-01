@@ -69,6 +69,13 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     df['secondsSinceStart'] = np.add(df['about.periodTime'].apply(_get_number_of_seconds_since_period_start),
                                      np.multiply(np.subtract(df['about.period'], 1), 1200))
 
+    # Reformat the dateTime to timecode format
+    df['about.dateTime'] = pd.to_datetime(df['about.dateTime']).dt.strftime("%Y%m%d_%H%M%S")
+
+    # Set the last row of data frame with final score from linescore
+    df.loc[df.index[-1], 'about.goals.away'] = live_data['liveData']['linescore']['teams']['away']['goals']
+    df.loc[df.index[-1], 'about.goals.home'] = live_data['liveData']['linescore']['teams']['home']['goals']
+
     return df
 
 

@@ -2,9 +2,9 @@ from ift6758.api.nhl_api_service import get_game_live_feed
 from ift6758.features.data_extractor import add_info_for_games, add_previous_event_for_shots_and_goals
 from ift6758.utilities.game_utilities import plays_to_frame
 
-columns_to_keep = ['team', 'eventIdx', 'event', 'isGoal', 'secondaryType', 'ordinalNum', 'periodType', 'periodTime',
-                   'periodTimeRemaining', 'secondsSinceStart', 'strength', 'emptyNet', 'x', 'y', 'rinkSide',
-                   'distanceToGoal', 'angleWithGoal', 'team.away', 'goals.away', 'team.home', 'goals.home']
+columns_to_keep = ['team', 'eventIdx', 'event', 'isGoal', 'secondaryType', 'ordinalNum', 'dateTime', 'periodType',
+                   'periodTime', 'periodTimeRemaining', 'secondsSinceStart', 'strength', 'emptyNet', 'x', 'y',
+                   'rinkSide', 'distanceToGoal', 'angleWithGoal', 'team.away', 'goals.away', 'team.home', 'goals.home']
 
 
 def auto_log(log, app, is_print=False):
@@ -38,6 +38,8 @@ def load_shots_and_last_event(app, game_id, start_timecode):
     shots_goals['emptyNet'] = shots_goals['emptyNet'].fillna(0)
     shots_goals['strength'] = shots_goals['strength'].fillna('Even')
 
-    last_event = plays.tail(1)[['eventIdx', 'ordinalNum', 'periodTimeRemaining', 'team.away', 'goals.away', 'team.home', 'goals.home']].to_dict(orient='records')[0]
+    last_event = plays.tail(1)[
+        ['eventIdx', 'dateTime', 'ordinalNum', 'periodTimeRemaining', 'team.away', 'goals.away', 'team.home',
+         'goals.home']].to_dict(orient='records')[0]
 
     return shots_goals, last_event
