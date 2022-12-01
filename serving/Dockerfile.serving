@@ -45,13 +45,19 @@ WORKDIR /code
 
 
 # TODO: add code, optionally a default model if you want 
+WORKDIR /app
+COPY requirements.txt requirements.txt
 
 
 # TODO: install libs
+RUN pip3 install -r requirements.txt
 
+COPY . .
 
 # TODO: expose ports (or do this in docker-compose)
 
 
 # TODO: specify default command - this is not required because you can always specify the command
 # either with the docker run command or in the docker-compose file
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
