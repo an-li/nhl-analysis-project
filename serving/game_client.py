@@ -15,16 +15,16 @@ def auto_log(log, app, is_print=False):
     return response_data
 
 
-def load_shots_and_goals_data(app, game_id, start_timecode):
+def load_shots_and_last_event(app, game_id, start_timecode):
     """
-    Load shots and goals data from API for specific game
+    Load shots and goals data from API, as well as the last event, for a specific game
 
     Args:
         game_id: ID of game
         start_timecode: IF specified, returns updates for specified game ID since the given startTimecode
 
     Returns:
-        Shots and goals data for game specified in dict format oriented by records
+        Shots and goals data for game specified in dict format oriented by records, as well as period, time remaining and score for last event fetched until this point
     """
 
     current_log = f'Retrieving data for game {game_id}'
@@ -38,4 +38,6 @@ def load_shots_and_goals_data(app, game_id, start_timecode):
     shots_goals['emptyNet'] = shots_goals['emptyNet'].fillna(0)
     shots_goals['strength'] = shots_goals['strength'].fillna('Even')
 
-    return shots_goals.to_dict(orient='records')
+    last_event = plays.tail(1)[['eventIdx', 'ordinalNum', 'periodTimeRemaining', 'team.away', 'goals.away', 'team.home', 'goals.home']].to_dict(orient='records')[0]
+
+    return shots_goals, last_event
