@@ -33,6 +33,25 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     all_plays_df = pd.concat([plays_to_frame(get_game_data(str(game_id))) for game_id in schedule_df['gamePk']],
                              ignore_index=True)
 
+    all_plays_df = add_info_for_games(all_plays_df, columns_to_keep, event_types)
+
+    # Finally, sort combined play data in increasing gameId then eventIdx order
+    return all_plays_df.sort_values(by=['gameId', 'eventIdx'], kind='mergesort').reset_index(drop=True)
+
+
+def add_info_for_games(all_plays_df, columns_to_keep, event_types):
+    """
+    Add additional info for games, and clean up redundant part of column names
+
+    Args:
+        all_plays_df: Start date of query period
+        event_types: List of event types to filter on, or empty list for all events
+        columns_to_keep: Columns of data frame to keep after cleaning the column names, except columns related to player types, or empty list to keep all columns
+            Must include gameId and eventIdx
+    Returns:
+        Data frame of cleaned up data between start_date and end_date, with additional columns
+    """
+
     # Join rinkside information with plays
     rinkside_information = _get_rinkside_information_by_game_team_and_period(all_plays_df)
     all_plays_df = all_plays_df.merge(rinkside_information, how='left', on=['gameId', 'about.period', 'team.name'])
@@ -56,7 +75,9 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     # For plays in which the goal is on the right, the y will need to be flipped as the right side of the net has negative y
     all_plays_df['angleWithGoal'] = get_angle_with_x_axis(
         np.where(all_plays_df['goal.x'] >= 0, all_plays_df['goal.x'] - all_plays_df['coordinates.x'],
-                 all_plays_df['coordinates.x'] - all_plays_df['goal.x']), np.where(all_plays_df['goal.x'] > 0, -1 * all_plays_df['coordinates.y'], all_plays_df['coordinates.y']))
+                 all_plays_df['coordinates.x'] - all_plays_df['goal.x']),
+        np.where(all_plays_df['goal.x'] > 0, -1 * all_plays_df['coordinates.y'], all_plays_df['coordinates.y']))
+
     # Normalize angles with value -0 to 0
     all_plays_df.loc[all_plays_df['angleWithGoal'] == -0.0, 'angleWithGoal'] = 0.0
 
@@ -94,8 +115,7 @@ def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, even
     if 'players' in all_plays_df.columns:
         all_plays_df = extract_players(all_plays_df)
 
-    # Finally, sort combined play data in increasing gameId then eventIdx order
-    return all_plays_df.sort_values(by=['gameId', 'eventIdx'], kind='mergesort').reset_index(drop=True)
+    return all_plays_df
 
 
 def _get_rinkside_information_by_game_team_and_period(all_plays_df):

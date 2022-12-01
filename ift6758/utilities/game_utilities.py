@@ -62,6 +62,8 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     df['gameId'] = live_data['gamePk']
     df['season'] = live_data['gameData']['game']['season']
     df['gameType'] = live_data['gameData']['game']['type']
+    df['team.away'] = live_data['gameData']['teams']['away']['name']
+    df['team.home'] = live_data['gameData']['teams']['home']['name']
 
     # Add seconds since game start, which is ((period number - 1) × 1200) + number of seconds since period start
     df['secondsSinceStart'] = np.add(df['about.periodTime'].apply(_get_number_of_seconds_since_period_start),

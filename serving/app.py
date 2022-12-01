@@ -22,8 +22,7 @@ from comet_ml import API
 from pathlib import Path
 from flask import Flask, jsonify, request, abort
 from ml_client import *
-
-
+from serving.game_client import load_shots_and_goals_data
 
 #import ift6758
 
@@ -163,6 +162,33 @@ def download_registry_model():
     app.logger.info(response)
     return jsonify(response), 200  
 
+@app.route("/gameData", methods=["GET"])
+def get_game_data():
+    """
+    Handles GET requests made to http://IP_ADDRESS:PORT/invalid_game_id_message
+
+    Returns shots and goals data for specified game ID
+    """
+    try:
+        game_id = request.args.get("game_id")
+        if not game_id or not game_id.isnumeric() or not len(game_id) == 10:
+            raise
+    except:
+        invalid_game_id_message = 'Invalid Game ID specified'
+        response_data = auto_log(invalid_game_id_message, app, is_print=True)
+        return jsonify(response_data), 400
+
+    try:
+        diff_patch = request.args.get("start_timecode")  # Optional parameter
+        game_data = load_shots_and_goals_data(app, game_id, diff_patch)
+        current_log = 'Game data loaded successfully'
+        auto_log(current_log, app, is_print=True)
+    except:
+        cannot_load_game_data_message = 'Cannot load game data'
+        response_data = auto_log(cannot_load_game_data_message, app, is_print=True)
+        return jsonify(response_data), 400
+
+    return jsonify(game_data), 200
 
 @app.route("/predict", methods=["POST"])
 def predict():
