@@ -19,7 +19,9 @@ from ml_client import *
 
 # import ift6758
 
+# Set up logger
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
 loaded_model = None
 
@@ -37,8 +39,6 @@ def before_first_request():
     Hook to handle any initialization before the first request (e.g. load model,
     setup logging handler, etc.)
     """
-    # TODO: setup basic logging configuration
-    logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
     current_log = 'Flask Application Started'
     response_data = auto_log(current_log, app, is_print=True)
