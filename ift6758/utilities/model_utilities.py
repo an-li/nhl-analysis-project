@@ -18,19 +18,19 @@ from sklearn.model_selection import train_test_split
 sns.set()
 
 
-def prepare_df(df: pd.DataFrame, features: list, game_type: str = 'R'):
+def prepare_df(df: pd.DataFrame, features: list, game_type: str = None):
     """
     Prepare data frame to be use. This function permite to only keep columns that we want and to balanced data if necessary.
 
     Args:
     	df: Data frame for the model
     	features: List of columns names of features we want to keep
-    	game_type: Game type to keep
+    	game_type: Game type to keep if specified, keep all games otherwise
     Returns:
     	Data frame 
     """
     df_dropped = df[df['periodType'] != 'SHOOTOUT']
-    if game_type:
+    if game_type or 'gameType' not in df_dropped.columns:
         df_dropped = df_dropped[df_dropped['gameType'] == game_type]
     df_dropped.loc[:, 'strength'] = df_dropped['strength'].fillna('Even')
     return df_dropped[features]
@@ -46,21 +46,21 @@ def one_hot_encode_features(df: pd.DataFrame, features: list):
     Returns:
         Data frame 
     """
-    if features != []:
+    if features:
         dummy_object = pd.get_dummies(df[features])
         df_encoded = df.merge(dummy_object, left_index=True, right_index=True)
         return df_encoded.drop(labels=features, axis=1)
     return df
 
 
-def filter_and_one_hot_encode_features(data, features, game_type='R'):
+def filter_and_one_hot_encode_features(data, features, game_type=None):
     """
     Filter and one hot encode features
 
     Args:
         data: Original data
         features: List of features to keep
-        game_type: Type of games to keep
+        game_type: Game type to keep if specified, keep all games otherwise
 
     Returns:
         Data with only specified features, with categorical features one-hot encoded

@@ -274,7 +274,7 @@ if __name__ == "__main__":
     test_reg_models = {}
     test_poff_models = {}
 
-    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
+    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features, 'R')
     y_test_reg = df_test_regular_filtered["isGoal"].to_numpy().reshape(-1)
     df_test_playoffs_filtered = filter_and_one_hot_encode_features(df_test_playoffs, features, 'P')
     # Add missing characteristics to playoffs
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     download_model_from_comet("ift6758a-a22-g3-projet", "MLP1", "1.0.2", output_path="./models/")
     mlp_model = load_model_from_file('./models/MLP1.sav')
 
-    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features)
+    df_test_regular_filtered = filter_and_one_hot_encode_features(df_test_regular, features, 'R')
     characteristics = list(df_test_regular_filtered.columns)
     characteristics.remove('isGoal')
     x_test, y_test = split_data_and_labels(df_test_regular_filtered, characteristics, ['isGoal'])

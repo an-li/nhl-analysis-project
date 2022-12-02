@@ -33,7 +33,7 @@ def knn_model(df_train: pd.DataFrame, features: list, model_name: str, project_n
     '''
 
     # Filtering and balancing dataframe
-    df_filtered = prepare_df(df_train, features)
+    df_filtered = prepare_df(df_train, features, 'R')
     df_filtered.dropna(inplace=True)
     df_filtered = one_hot_encode_features(df_filtered, list(df_filtered.select_dtypes(include=['object']).columns))
 

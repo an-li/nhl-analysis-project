@@ -24,7 +24,7 @@ def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, c
     '''
 
     # Filtering and balancing dataframe
-    df_filtered = prepare_df(df_train, ["isGoal", "distanceToGoal", "angleWithGoal"])
+    df_filtered = prepare_df(df_train, ["isGoal", "distanceToGoal", "angleWithGoal"], 'R')
 
     model_list = [["distanceToGoal"], ["angleWithGoal"], ["distanceToGoal", "angleWithGoal"]]
     models = {}

@@ -35,7 +35,7 @@ def mlp_model(df_train: pd.DataFrame, features: list, model_name: str, project_n
     '''
 
     # Filtering and balancing dataframe
-    df_filtered = filter_and_one_hot_encode_features(df_train, features)
+    df_filtered = filter_and_one_hot_encode_features(df_train, features, 'R')
 
     experiment = None
     if comet:
