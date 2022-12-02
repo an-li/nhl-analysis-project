@@ -24,13 +24,11 @@ class MLClient:
         Returns:
             Default model
         """
-        self.loaded_model = self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_mutual_info_classif",
-                                                    "1.0.0")
+        self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_mutual_info_classif",
+                                     "1.0.0")
 
         current_log = 'Default model loaded'
         self.logger.auto_log(current_log, is_print=True)
-
-        return self.loaded_model
 
     def extract_model_from_file(self, workspace_name, model_name, version, extension='.pkl',
                                 load_already_downloaded_if_error=False):
@@ -63,4 +61,5 @@ class MLClient:
                 if not os.path.exists(path_to_file) or not load_already_downloaded_if_error:
                     raise e
 
-        return load_model_from_file(path_to_file)
+        self.loaded_model = load_model_from_file(path_to_file)
+        return self.loaded_model

@@ -112,7 +112,7 @@ def download_registry_model():
     extension = content_json.get('extension', '.pkl')
 
     try:
-        ml_client.loaded_model = ml_client.extract_model_from_file(workspace, model, version, extension, True)
+        ml_client.extract_model_from_file(workspace, model, version, extension, True)
     except Exception as e:
         message = f'Cannot load model {model}!'
         response = logger.auto_log(message, e, True)
