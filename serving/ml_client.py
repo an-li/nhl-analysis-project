@@ -24,13 +24,13 @@ class MLClient:
         Returns:
             Default model
         """
-        loaded_model = self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_mutual_info_classif",
+        self.loaded_model = self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_mutual_info_classif",
                                                     "1.0.0")
 
         current_log = 'Default model loaded'
         self.logger.auto_log(current_log, is_print=True)
 
-        return loaded_model
+        return self.loaded_model
 
     def extract_model_from_file(self, workspace_name, model_name, version, extension='.pkl',
                                 load_already_downloaded_if_error=False):

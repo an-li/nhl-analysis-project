@@ -30,8 +30,6 @@ app = Flask(__name__)
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 logger = AutoLogger(app, LOG_FILE, logging.INFO)
 
-loaded_model = None
-
 game_client = GameClient(logger)
 ml_client = MLClient(logger)
 
@@ -52,7 +50,7 @@ def before_first_request():
     logger.auto_log(current_log, is_print=True)
 
     # TODO: any other initialization before the first request (e.g. load default model)
-    loaded_model = ml_client.load_default_model()
+    ml_client.load_default_model()
 
 
 @app.route("/logs", methods=["GET"])
@@ -114,7 +112,7 @@ def download_registry_model():
     extension = content_json.get('extension', '.pkl')
 
     try:
-        loaded_model = ml_client.extract_model_from_file(workspace, model, version, extension, True)
+        ml_client.loaded_model = ml_client.extract_model_from_file(workspace, model, version, extension, True)
     except Exception as e:
         message = f'Cannot load model {model}!'
         response = logger.auto_log(message, e, True)
@@ -181,7 +179,7 @@ def predict():
     x_val = content_json['data']
 
     try:
-        y_pred = loaded_model.predict(x_val)
+        y_pred = ml_client.loaded_model.predict(x_val)
     except:
         current_log = 'X Data was not properly formatted'
         response_data = logger.auto_log(current_log, is_print=True)
