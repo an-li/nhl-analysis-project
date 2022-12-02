@@ -29,7 +29,9 @@ def prepare_df(df: pd.DataFrame, features: list, game_type: str = 'R'):
     Returns:
     	Data frame 
     """
-    df_dropped = df[(df['gameType'] == game_type) & (df['periodType'] != 'SHOOTOUT')]
+    df_dropped = df[df['periodType'] != 'SHOOTOUT']
+    if game_type:
+        df_dropped = df_dropped[df_dropped['gameType'] == game_type]
     df_dropped.loc[:, 'strength'] = df_dropped['strength'].fillna('Even')
     return df_dropped[features]
 
