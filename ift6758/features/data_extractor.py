@@ -181,6 +181,10 @@ def add_previous_event_for_shots_and_goals(plays_df: pd.DataFrame) -> pd.DataFra
     # The remaining steps are only performed on shots and goals
     plays_df = plays_df[plays_df['event'].isin(['Shot', 'Goal'])]
 
+    # When there are no shots or goals, return
+    if len(plays_df) == 0:
+        return plays_df
+
     # Set 'secondaryType' for shots and goals as 'shotType'
     plays_df.rename(columns={'secondaryType': 'shotType'}, inplace=True)
 

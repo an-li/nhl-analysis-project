@@ -27,16 +27,26 @@ class GameClient:
         self.logger.auto_log(current_log, is_print=True)
 
         plays = plays_to_frame(get_game_live_feed(game_id, start_timecode))
-        plays = add_info_for_games(plays, columns_to_keep, [])
-        shots_goals = add_previous_event_for_shots_and_goals(plays).drop(columns=['gameId'])
+        if len(plays) == 0:
+            current_log = 'No events available'
+            self.logger.auto_log(current_log, is_print=True)
+            return plays, {}
 
-        # Fill missing emptyNet and strength info
-        shots_goals['emptyNet'] = shots_goals['emptyNet'].fillna(0)
-        shots_goals['strength'] = shots_goals['strength'].fillna('Even')
+        plays = add_info_for_games(plays, columns_to_keep, [])
 
         last_event = plays.tail(1)[
             ['eventIdx', 'dateTime', 'ordinalNum', 'periodTimeRemaining', 'team.away', 'goals.away', 'team.home',
              'goals.home']].to_dict(orient='records')[0]
+
+        shots_goals = add_previous_event_for_shots_and_goals(plays).drop(columns=['gameId'])
+        if len(shots_goals) == 0:
+            current_log = 'No shots or goals available'
+            self.logger.auto_log(current_log, is_print=True)
+            return shots_goals, last_event
+
+        # Fill missing emptyNet and strength info
+        shots_goals['emptyNet'] = shots_goals['emptyNet'].fillna(0)
+        shots_goals['strength'] = shots_goals['strength'].fillna('Even')
 
         current_log = 'Game data loaded successfully'
         self.logger.auto_log(current_log, is_print=True)

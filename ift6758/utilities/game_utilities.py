@@ -57,6 +57,8 @@ def plays_to_frame(live_data: dict) -> pd.DataFrame:
     """
 
     df = pd.json_normalize(live_data['liveData']['plays']['allPlays'])
+    if len(df) == 0:
+        return pd.DataFrame()
 
     # Add game metadata
     df['gameId'] = live_data['gamePk']
