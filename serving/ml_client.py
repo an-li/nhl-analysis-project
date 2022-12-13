@@ -1,6 +1,9 @@
+import numpy as np
+import pandas as pd
 import seaborn as sns
 
-from ift6758.utilities.model_utilities import download_model_from_comet, load_model_from_file
+from ift6758.utilities.model_utilities import download_model_from_comet, load_model_from_file, \
+    filter_and_one_hot_encode_features
 
 sns.set()
 
@@ -24,7 +27,7 @@ class MLClient:
         Returns:
             Default model
         """
-        self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_mutual_info_classif",
+        self.extract_model_from_file("ift6758a-a22-g3-projet", "XGBoost_KBest_25_f_classif",
                                      "1.0.0")
 
         current_log = 'Default model loaded'
@@ -63,3 +66,29 @@ class MLClient:
 
         self.loaded_model = load_model_from_file(path_to_file)
         return self.loaded_model
+
+    def predict(self, data, features, features_to_one_hot=[], one_hot_features=[]):
+        """
+        Predict goal probabilities using loaded model and specified features
+
+        Args:
+            data: Shots and goals data
+            features: List of features to predict on
+            features_to_one_hot: List of categorical features to convert to one-hot encoding
+            one_hot_features: List of features that have already been converted to one-hot encoding
+
+        Returns:
+            Goal probability of each shot, excluding shots made in the shootout period
+        """
+        if len(data) == 0:
+            return np.array([])
+
+        filtered_data = filter_and_one_hot_encode_features(data, features + features_to_one_hot)
+        for column in one_hot_features:
+            if column not in filtered_data.columns:
+                filtered_data[column] = 0
+        filtered_data = filtered_data[features + one_hot_features]
+
+        predictions = self.loaded_model.predict_proba(filtered_data)[:, 1]
+
+        return predictions.astype(float)

@@ -14,6 +14,8 @@ import os
 import os.path
 import pickle
 
+import numpy as np
+import pandas as pd
 from comet_ml import API
 from flask import Flask, request, jsonify
 from waitress import serve
@@ -153,7 +155,7 @@ def get_game_data():
 
     output = {
         'last': last_event,
-        'shots': game_data.to_dict(orient='records')
+        'shots': game_data.replace({np.nan: None}).to_dict(orient='records')
     }
 
     return jsonify(output), 200
@@ -175,19 +177,25 @@ def predict():
         response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
-    # TODO properly parse JSON data, once we know the format
+    # Features for xgboost model
+    # "features": ["speedOfChangeOfAngle", "speed", "changeOfAngleFromPrev", "rebound", "distanceFromPrev", "secondsSincePrev", "prevSecondsSinceStart", "distanceToGoal", "emptyNet", "secondsSinceStart"],
+    # 	"features_to_one_hot": ["prevEvent", "strength", "shotType"],
+    # 	"one_hot_features": ["prevEvent_Faceoff", "prevEvent_Giveaway", "prevEvent_Hit", "prevEvent_Penalty", "prevEvent_Shot", "prevEvent_Takeaway", "strength_Even", "strength_Power Play", "strength_Short Handed", "shotType_Backhand", "shotType_Deflected", "shotType_Slap Shot", "shotType_Tip-in", "shotType_Wrap-around", "shotType_Wrist Shot"]
     x_val = content_json['data']
+    features = content_json['features']
+    features_to_one_hot = content_json['features_to_one_hot']
+    one_hot_features = content_json['one_hot_features']
 
     try:
-        y_pred = ml_client.loaded_model.predict(x_val)
+        y_pred = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)
     except:
         current_log = 'X Data was not properly formatted'
         response_data = logger.auto_log(current_log, is_print=True)
         return jsonify(response_data), 500
 
-    response = {"Prediction": y_pred}
+    response = {"predictions": list(y_pred)}
 
-    app.logger.info(response)
+    app.logger.info('Predictions loaded successfully', is_print=True)
     return jsonify(response), 200  # response must be json serializable!
 
 
