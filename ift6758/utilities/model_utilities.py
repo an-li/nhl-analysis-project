@@ -30,8 +30,9 @@ def prepare_df(df: pd.DataFrame, features: list, game_type: str = None):
     	Data frame 
     """
     df_dropped = df[df['periodType'] != 'SHOOTOUT']
-    if game_type or 'gameType' not in df_dropped.columns:
+    if game_type and 'gameType' in df_dropped.columns:
         df_dropped = df_dropped[df_dropped['gameType'] == game_type]
+    df_dropped.loc[:, 'emptyNet'] = df_dropped['emptyNet'].fillna(0)
     df_dropped.loc[:, 'strength'] = df_dropped['strength'].fillna('Even')
     return df_dropped[features]
 
