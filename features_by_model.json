@@ -1,0 +1,226 @@
+{
+	"XGBoost_distanceToGoal_angleWithGoal": {
+		"features": [
+			"distanceToGoal",
+			"angleWithGoal"
+		],
+		"features_to_one_hot": [],
+		"one_hot_features": []
+	},
+	"XGBoost_All_Features": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"changeOfAngleFromPrev",
+			"rebound",
+			"distanceFromPrev",
+			"secondsSincePrev",
+			"prevAngleWithGoal",
+			"prevY",
+			"prevX",
+			"prevSecondsSinceStart",
+			"angleWithGoal",
+			"distanceToGoal",
+			"x",
+			"y",
+			"emptyNet",
+			"secondsSinceStart"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Blocked Shot",
+			"prevEvent_Faceoff",
+			"prevEvent_Giveaway",
+			"prevEvent_Goal",
+			"prevEvent_Hit",
+			"prevEvent_Missed Shot",
+			"prevEvent_Penalty",
+			"prevEvent_Shot",
+			"prevEvent_Takeaway",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Backhand",
+			"shotType_Deflected",
+			"shotType_Slap Shot",
+			"shotType_Snap Shot",
+			"shotType_Tip-In",
+			"shotType_Wrap-around",
+			"shotType_Wrist Shot"
+		]
+	},
+	"XGBoost_KBest_15_f_classif": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"changeOfAngleFromPrev",
+			"rebound",
+			"secondsSincePrev",
+			"prevSecondsSinceStart",
+			"distanceToGoal",
+			"emptyNet"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Faceoff",
+			"prevEvent_Shot",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Slap Shot",
+			"shotType_Tip-In"
+		]
+	},
+	"XGBoost_KBest_15_mutual_info_classif": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"distanceFromPrev",
+			"secondsSincePrev",
+			"prevX",
+			"angleWithGoal",
+			"distanceToGoal",
+			"x",
+			"y",
+			"emptyNet"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Penalty",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Slap Shot"
+		]
+	},
+	"XGBoost_KBest_25_f_classif": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"changeOfAngleFromPrev",
+			"rebound",
+			"distanceFromPrev",
+			"secondsSincePrev",
+			"prevSecondsSinceStart",
+			"distanceToGoal",
+			"emptyNet",
+			"secondsSinceStart"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Faceoff",
+			"prevEvent_Giveaway",
+			"prevEvent_Hit",
+			"prevEvent_Penalty",
+			"prevEvent_Shot",
+			"prevEvent_Takeaway",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Backhand",
+			"shotType_Deflected",
+			"shotType_Slap Shot",
+			"shotType_Tip-in",
+			"shotType_Wrap-around",
+			"shotType_Wrist Shot"
+		]
+	},
+	"XGBoost_KBest_25_mutual_info_classif": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"changeOfAngleFromPrev",
+			"rebound",
+			"distanceFromPrev",
+			"secondsSincePrev",
+			"prevAngleWithGoal",
+			"prevY",
+			"prevX",
+			"prevSecondsSinceStart",
+			"angleWithGoal",
+			"distanceToGoal",
+			"x",
+			"y",
+			"emptyNet",
+			"secondsSinceStart"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Faceoff",
+			"prevEvent_Goal",
+			"prevEvent_Penalty",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Deflected",
+			"shotType_Tip-In",
+			"shotType_Wrap-around"
+		]
+	},
+	"XGBoost_Recursive": {
+		"features": [
+			"speedOfChangeOfAngle",
+			"speed",
+			"changeOfAngleFromPrev",
+			"rebound",
+			"distanceFromPrev",
+			"secondsSincePrev",
+			"prevAngleWithGoal",
+			"prevY",
+			"prevX",
+			"prevSecondsSinceStart",
+			"angleWithGoal",
+			"distanceToGoal",
+			"x",
+			"y",
+			"emptyNet",
+			"secondsSinceStart"
+		],
+		"features_to_one_hot": [
+			"prevEvent",
+			"strength",
+			"shotType"
+		],
+		"one_hot_features": [
+			"prevEvent_Blocked Shot",
+			"prevEvent_Faceoff",
+			"prevEvent_Giveaway",
+			"prevEvent_Goal",
+			"prevEvent_Hit",
+			"prevEvent_Missed Shot",
+			"prevEvent_Penalty",
+			"prevEvent_Shot",
+			"prevEvent_Takeaway",
+			"strength_Even",
+			"strength_Power Play",
+			"strength_Short Handed",
+			"shotType_Backhand",
+			"shotType_Deflected",
+			"shotType_Slap Shot",
+			"shotType_Snap Shot",
+			"shotType_Tip-In",
+			"shotType_Wrap-around",
+			"shotType_Wrist Shot"
+		]
+	}
+}

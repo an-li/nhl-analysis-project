@@ -183,8 +183,8 @@ def predict():
     # 	"one_hot_features": ["prevEvent_Faceoff", "prevEvent_Giveaway", "prevEvent_Hit", "prevEvent_Penalty", "prevEvent_Shot", "prevEvent_Takeaway", "strength_Even", "strength_Power Play", "strength_Short Handed", "shotType_Backhand", "shotType_Deflected", "shotType_Slap Shot", "shotType_Tip-in", "shotType_Wrap-around", "shotType_Wrist Shot"]
     x_val = content_json['data']
     features = content_json['features']
-    features_to_one_hot = content_json['features_to_one_hot']
-    one_hot_features = content_json['one_hot_features']
+    features_to_one_hot = content_json.get('features_to_one_hot', [])
+    one_hot_features = content_json.get('one_hot_features', [])
 
     try:
         y_pred = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)

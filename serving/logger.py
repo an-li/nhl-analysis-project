@@ -3,7 +3,7 @@ import sys
 import traceback
 
 
-class AutoLogger:
+class Logger:
     def __init__(self, app, log_file, level=logging.WARN):
         logging.basicConfig(filename=log_file, level=level)
         self.app = app
