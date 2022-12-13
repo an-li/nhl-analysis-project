@@ -10,18 +10,15 @@ gunicorn can be installed via:
 """
 import json
 import logging
-import os
 import os.path
-import pickle
 
 import numpy as np
 import pandas as pd
-from comet_ml import API
 from flask import Flask, request, jsonify
 from waitress import serve
 
-from auto_logger import AutoLogger
 from game_client import GameClient
+from logger import Logger
 from ml_client import MLClient
 
 # import ift6758
@@ -30,7 +27,7 @@ app = Flask(__name__)
 
 # Set up logger
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-logger = AutoLogger(app, LOG_FILE, logging.INFO)
+logger = Logger(app, LOG_FILE, logging.INFO)
 
 game_client = GameClient(logger)
 ml_client = MLClient(logger)
@@ -177,10 +174,6 @@ def predict():
         response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
-    # Features for xgboost model
-    # "features": ["speedOfChangeOfAngle", "speed", "changeOfAngleFromPrev", "rebound", "distanceFromPrev", "secondsSincePrev", "prevSecondsSinceStart", "distanceToGoal", "emptyNet", "secondsSinceStart"],
-    # 	"features_to_one_hot": ["prevEvent", "strength", "shotType"],
-    # 	"one_hot_features": ["prevEvent_Faceoff", "prevEvent_Giveaway", "prevEvent_Hit", "prevEvent_Penalty", "prevEvent_Shot", "prevEvent_Takeaway", "strength_Even", "strength_Power Play", "strength_Short Handed", "shotType_Backhand", "shotType_Deflected", "shotType_Slap Shot", "shotType_Tip-in", "shotType_Wrap-around", "shotType_Wrist Shot"]
     x_val = content_json['data']
     features = content_json['features']
     features_to_one_hot = content_json.get('features_to_one_hot', [])
@@ -188,14 +181,15 @@ def predict():
 
     try:
         y_pred = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)
-    except:
+    except Exception as e:
         current_log = 'X Data was not properly formatted'
         response_data = logger.auto_log(current_log, is_print=True)
         return jsonify(response_data), 500
 
     response = {"predictions": list(y_pred)}
 
-    app.logger.info('Predictions loaded successfully', is_print=True)
+    logger.auto_log("Predictions loaded successfully", is_print=True)
+    app.logger.info(json)
     return jsonify(response), 200  # response must be json serializable!
 
 
