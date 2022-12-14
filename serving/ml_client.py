@@ -78,17 +78,23 @@ class MLClient:
             one_hot_features: List of features that have already been converted to one-hot encoding
 
         Returns:
-            Goal probability of each shot, excluding shots made in the shootout period
+            Data frame containing event index and goal probability of each shot, excluding shots made in the shootout period
         """
         if len(data) == 0:
-            return np.array([])
+            return pd.DataFrame()
 
-        filtered_data = filter_and_one_hot_encode_features(data, features + features_to_one_hot)
+        # Add eventIdx to columns prior to filtering so it can be used once all the NaN's have been dropped
+        filtered_data = filter_and_one_hot_encode_features(data, ['eventIdx'] + features + features_to_one_hot)
+
+        # Use the original eventIdx of the filtered data for the predictions, it will later be used to join with the game data
+        predictions = pd.DataFrame(columns=['eventIdx'], data=filtered_data['eventIdx'])
+
+        # For missing one hot features, add a column of 0's
         for column in one_hot_features:
             if column not in filtered_data.columns:
                 filtered_data[column] = 0
         filtered_data = filtered_data[features + one_hot_features]
 
-        predictions = self.loaded_model.predict_proba(filtered_data)[:, 1]
+        predictions['goalProbability'] = self.loaded_model.predict_proba(filtered_data)[:, 1]
 
-        return predictions.astype(float)
+        return predictions

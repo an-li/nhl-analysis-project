@@ -180,13 +180,13 @@ def predict():
     one_hot_features = content_json.get('one_hot_features', [])
 
     try:
-        y_pred = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)
+        predicted_data = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)
     except Exception as e:
         current_log = 'X Data was not properly formatted'
-        response_data = logger.auto_log(current_log, is_print=True)
+        response_data = logger.auto_log(current_log, e, is_print=True)
         return jsonify(response_data), 500
 
-    response = {"predictions": list(y_pred)}
+    response = {"predictions": predicted_data.replace({np.nan: None}).to_dict(orient='records')}
 
     logger.auto_log("Predictions loaded successfully", is_print=True)
     app.logger.info(json)
