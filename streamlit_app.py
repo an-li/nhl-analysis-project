@@ -14,7 +14,7 @@ Feel free to experiment with layout and adding functionality!
 Just make sure that the required functionality is included as well
 """
 
-st.title("INSERT APP TITLE HERE")
+st.title("IFT6758-A22-G3-Projet")
 
 LOG_FILE = os.environ.get("STREAMLIT_LOG", "streamlit.log")
 logger = Logger(LOG_FILE, 'streamlit', logging.INFO)
@@ -24,11 +24,24 @@ game_client = GameClient(logger)
 
 with st.sidebar:
     # TODO: Add input for the sidebar
-    pass
+    option = st.selectbox(
+    'How would you like to be contacted?',
+    ('Email', 'Home phone', 'Mobile phone'))
+
+    option = st.selectbox(
+    'How would you like to be contacted?',
+    ('Email', 'Home phone', 'Mobile phone'))
+
+    option = st.selectbox(
+    'How would you like to be contacted?',
+    ('Email', 'Home phone', 'Mobile phone'))
+    
 
 with st.container():
     # TODO: Add Game ID input
-    pass
+    st.text_input("Game Id", key="gameId")
+    if st.button('Say hello'):
+        st.write('Why hello there')
 
 with st.container():
     # TODO: Add Game info and predictions
