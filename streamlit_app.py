@@ -23,17 +23,21 @@ logger = Logger(LOG_FILE, 'streamlit', logging.INFO)
 
 game_client = GameClient(logger)
 
+PORT = "8080"
+IP = "http://127.0.0.1:"
+address = IP+PORT
+
 def pingGame(game_id):
     shots_goals, last_event = game_client.load_shots_and_last_event(game_id)
     r = requests.post(
-        "http://127.0.0.1:8080/predict", 
+        address+"/predict", 
         json=json.loads(shots_goals.to_json())
     )
     print(r.json())
 
 def pingServer():
     r = requests.get(
-        "http://127.0.0.1:8080/ping")
+        address+"/ping")
 
 
 with st.sidebar:
