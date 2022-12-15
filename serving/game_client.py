@@ -11,7 +11,7 @@ class GameClient:
     def __init__(self, logger):
         self.logger = logger
 
-    def load_shots_and_last_event(self, game_id, start_timecode):
+    def load_shots_and_last_event(self, game_id, start_timecode=None):
         """
         Load shots and goals data from API, as well as the last event, for a specific game
 
