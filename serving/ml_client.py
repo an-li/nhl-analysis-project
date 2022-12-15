@@ -59,12 +59,11 @@ class MLClient:
                 download_model_from_comet(workspace_name, model_name.replace('_', '-'), version,
                                           output_path=output_path)
             except Exception as e:
-                current_log = 'Failed downloading the model'
-                self.logger.auto_log(current_log, e, is_print=True)
                 if not os.path.exists(path_to_file) or not load_already_downloaded_if_error:
                     raise e
 
         self.loaded_model = load_model_from_file(path_to_file)
+        self.logger.auto_log(f'Model {model_name} loaded successfully', is_print=True)
         return self.loaded_model
 
     def predict(self, data, features, features_to_one_hot=[], one_hot_features=[]):

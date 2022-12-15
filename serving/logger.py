@@ -1,12 +1,15 @@
 import logging
 import sys
+import time
 import traceback
 
 
 class Logger:
-    def __init__(self, app, log_file, level=logging.WARN):
-        logging.basicConfig(filename=log_file, level=level)
-        self.app = app
+    def __init__(self, log_file, name, level=logging.WARN):
+        self.logger = logging.getLogger(name)
+        logging.basicConfig(filename=log_file, level=level, format='%(asctime)s:%(name)s:%(levelname)s:%(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
+        logging.Formatter.converter = time.gmtime
 
     def auto_log(self, log, exception=None, is_print=False):
         if is_print:
@@ -20,8 +23,10 @@ class Logger:
         if exception:
             response_data['exception'] = str(exception)
             response_data['stack_trace'] = traceback.format_exc()
-            self.app.logger.error(response_data)
+            self.logger.error(log)
+            self.logger.error(response_data['exception'])
+            self.logger.error(response_data['stack_trace'])
         else:
-            self.app.logger.info(response_data)
+            self.logger.info(log)
 
         return response_data

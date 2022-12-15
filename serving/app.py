@@ -27,7 +27,7 @@ app = Flask(__name__)
 
 # Set up logger
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-logger = Logger(app, LOG_FILE, logging.INFO)
+logger = Logger(LOG_FILE, app.name, logging.INFO)
 
 game_client = GameClient(logger)
 ml_client = MLClient(logger)
@@ -65,15 +65,7 @@ def logs():
         response_data = logger.auto_log(json_format_error, is_print=True)
         return jsonify(response_data), 400
 
-    count = 0
-    dictionary = {}
-    for i in lines:
-        dictionary[str(count)] = i
-        count = count + 1
-
-    response = json.dumps(dictionary, indent=4)
-
-    return jsonify(response)
+    return jsonify(lines)
 
 
 @app.route("/download_registry_model", methods=["POST"])
@@ -97,7 +89,6 @@ def download_registry_model():
     # Get POST json data
     try:
         content_json = request.get_json()
-        app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
         response_data = logger.auto_log(json_format_error, is_print=True)
@@ -120,9 +111,8 @@ def download_registry_model():
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
 
-    response = {'status': 'model retrieval successful'}
+    response = {'status': f"Model {model} loaded successfully"}
 
-    app.logger.info(response)
     return jsonify(response), 200
 
 
@@ -168,7 +158,6 @@ def predict():
     # Get POST json data
     try:
         content_json = request.get_json()
-        app.logger.info(json)
     except:
         json_format_error = 'JSON file not properly formatted'
         response_data = logger.auto_log(json_format_error, is_print=True)
@@ -189,7 +178,6 @@ def predict():
     response = {"predictions": predicted_data.replace({np.nan: None}).to_dict(orient='records')}
 
     logger.auto_log("Predictions loaded successfully", is_print=True)
-    app.logger.info(json)
     return jsonify(response), 200  # response must be json serializable!
 
 
