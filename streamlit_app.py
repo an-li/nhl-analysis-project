@@ -25,22 +25,25 @@ game_client = GameClient(logger)
 with st.sidebar:
     # TODO: Add input for the sidebar
     option = st.selectbox(
-    'How would you like to be contacted?',
+    'Workplace',
     ('Email', 'Home phone', 'Mobile phone'))
 
     option = st.selectbox(
-    'How would you like to be contacted?',
+    'Model',
     ('Email', 'Home phone', 'Mobile phone'))
 
     option = st.selectbox(
-    'How would you like to be contacted?',
+    'Version',
     ('Email', 'Home phone', 'Mobile phone'))
-    
+
+    if st.button('Get Model'):
+        st.write('Why hello there')
+
 
 with st.container():
     # TODO: Add Game ID input
     st.text_input("Game Id", key="gameId")
-    if st.button('Say hello'):
+    if st.button('Ping Game'):
         st.write('Why hello there')
 
 with st.container():
