@@ -39,24 +39,30 @@ def pingServer():
     r = requests.get(
         address+"/ping")
 
+def downloadModel(workspace, model, version):
+    jsonString = '{ "workspace":{workspace}, "model":{workspace}, "version":{workspace}}'.format(workspace=workspace, model=model, version=version)
+    r = requests.post(
+        address+"/predict", 
+        json=json.loads(jsonString)
+    )
+
 
 with st.sidebar:
     # TODO: Add input for the sidebar
-    option = st.selectbox(
+    workplaceOption = st.selectbox(
     'Workplace',
     ('ift6758a-a22-g3-projet'))
 
-    option = st.selectbox(
+    modelOption = st.selectbox(
     'Model',
     ('XGBoost_All_Features', 'XGBoost_KBest_25_f_classif', 'XGBoost_KBest_25_mutual_info_classif'))
 
-    option = st.selectbox(
+    versionOption = st.selectbox(
     'Version',
     ('1.0.0'))
 
     if st.button('Get Model'):
-        #TODO: add call
-        st.write('Why hello there')
+        downloadModel(workplaceOption, modelOption, versionOption)
     
     #TODO: Remove this before handing the project
     if st.button('DEBUG ONLY: Test Ping Server'):
