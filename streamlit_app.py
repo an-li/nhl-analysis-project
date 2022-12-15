@@ -5,8 +5,8 @@ import os
 import requests
 import streamlit as st
 
-from serving.game_client import GameClient
-from serving.logger import Logger
+from ift6758.clients.game_client import GameClient
+from ift6758.logging.logger import Logger
 
 """
 General template for your streamlit app. 

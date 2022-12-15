@@ -8,7 +8,6 @@ gunicorn can be installed via:
     $ pip install gunicorn
 
 """
-import json
 import logging
 import os.path
 
@@ -17,9 +16,9 @@ import pandas as pd
 from flask import Flask, request, jsonify
 from waitress import serve
 
-from game_client import GameClient
-from logger import Logger
-from ml_client import MLClient
+from ift6758.clients.game_client import GameClient
+from ift6758.logging.logger import Logger
+from ift6758.clients.ml_client import MLClient
 
 # import ift6758
 
