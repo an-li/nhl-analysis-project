@@ -38,6 +38,7 @@ def pingGame(game_id):
 def pingServer():
     r = requests.get(
         address+"/ping")
+    print(r)
 
 def downloadModel(workspace, model, version):
     jsonString = '{ "workspace":{workspace}, "model":{workspace}, "version":{workspace}}'.format(workspace=workspace, model=model, version=version)
@@ -45,13 +46,14 @@ def downloadModel(workspace, model, version):
         address+"/predict", 
         json=json.loads(jsonString)
     )
+    print(r)
 
 
 with st.sidebar:
     # TODO: Add input for the sidebar
     workplaceOption = st.selectbox(
     'Workplace',
-    ('ift6758a-a22-g3-projet'))
+    ('ift6758a-a22-g3-projet',))
 
     modelOption = st.selectbox(
     'Model',
@@ -59,7 +61,7 @@ with st.sidebar:
 
     versionOption = st.selectbox(
     'Version',
-    ('1.0.0'))
+    ('1.0.0',))
 
     if st.button('Get Model'):
         downloadModel(workplaceOption, modelOption, versionOption)
