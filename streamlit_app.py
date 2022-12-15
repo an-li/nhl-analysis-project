@@ -44,17 +44,18 @@ with st.sidebar:
     # TODO: Add input for the sidebar
     option = st.selectbox(
     'Workplace',
-    ('Email', 'Home phone', 'Mobile phone'))
+    ('ift6758a-a22-g3-projet'))
 
     option = st.selectbox(
     'Model',
-    ('Email', 'Home phone', 'Mobile phone'))
+    ('XGBoost_All_Features', 'XGBoost_KBest_25_f_classif', 'XGBoost_KBest_25_mutual_info_classif'))
 
     option = st.selectbox(
     'Version',
-    ('Email', 'Home phone', 'Mobile phone'))
+    ('1.0.0'))
 
     if st.button('Get Model'):
+        #TODO: add call
         st.write('Why hello there')
     
     #TODO: Remove this before handing the project
