@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
@@ -50,7 +51,7 @@ def ping_game(game_id):
                 'features': features_by_model[st.session_state.model]['features'],
                 'features_to_one_hot': features_by_model[st.session_state.model]['features_to_one_hot'],
                 'one_hot_features': features_by_model[st.session_state.model]['one_hot_features'],
-                'data': shots_goals.to_dict(orient='records')
+                'data': shots_goals.replace({np.nan: None}).to_dict(orient='records')
             }
         )
         if r.status_code == 200:

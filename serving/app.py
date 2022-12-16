@@ -16,9 +16,8 @@ import pandas as pd
 from flask import Flask, request, jsonify
 from waitress import serve
 
-from ift6758.clients.game_client import GameClient
-from ift6758.logging.logger import Logger
 from ift6758.clients.ml_client import MLClient
+from ift6758.logging.logger import Logger
 
 # import ift6758
 
@@ -28,7 +27,6 @@ app = Flask(__name__)
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 logger = Logger(LOG_FILE, app.name, logging.INFO)
 
-game_client = GameClient(logger)
 ml_client = MLClient(logger)
 
 
@@ -113,38 +111,6 @@ def download_registry_model():
     response = {'status': f"Model {model} loaded successfully"}
 
     return jsonify(response), 200
-
-
-@app.route("/game_data", methods=["GET"])
-def get_game_data():
-    """
-    Handles GET requests made to http://IP_ADDRESS:PORT/invalid_game_id_message
-
-    Returns shots and goals data for specified game ID
-    """
-    try:
-        game_id = request.args.get("game_id")
-        if not game_id or not game_id.isnumeric() or not len(game_id) == 10:
-            raise
-    except:
-        invalid_game_id_message = 'Invalid Game ID specified'
-        response_data = logger.auto_log(invalid_game_id_message, is_print=True)
-        return jsonify(response_data), 400
-
-    try:
-        diff_patch = request.args.get("start_timecode")  # Optional parameter
-        game_data, last_event = game_client.load_shots_and_last_event(game_id, diff_patch)
-    except Exception as e:
-        cannot_load_game_data_message = 'Cannot load game data'
-        response_data = logger.auto_log(cannot_load_game_data_message, e, is_print=True)
-        return jsonify(response_data), 400
-
-    output = {
-        'last': last_event,
-        'shots': game_data.replace({np.nan: None}).to_dict(orient='records')
-    }
-
-    return jsonify(output), 200
 
 
 @app.route("/predict", methods=["POST"])
