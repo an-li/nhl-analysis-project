@@ -1,4 +1,5 @@
-import numpy as np
+import logging
+
 import pandas as pd
 import seaborn as sns
 
@@ -31,7 +32,7 @@ class MLClient:
                                      "1.0.0")
 
         current_log = 'Default model loaded'
-        self.logger.auto_log(current_log, is_print=True)
+        self.logger.auto_log(current_log, logging.INFO, is_print=True)
 
     def extract_model_from_file(self, workspace_name, model_name, version, extension='.pkl',
                                 load_already_downloaded_if_error=False):
@@ -52,9 +53,10 @@ class MLClient:
         path_to_file = output_path + '/' + model_name + extension
 
         if os.path.exists(path_to_file):
-            self.logger.auto_log(f"Model {model_name} on filesystem, loading from file", is_print=True)
+            self.logger.auto_log(f"Model {model_name} on filesystem, loading from file", logging.INFO, is_print=True)
         else:
-            self.logger.auto_log(f"Model {model_name} not on filesystem, loading from Comet", is_print=True)
+            self.logger.auto_log(f"Model {model_name} not on filesystem, loading from Comet", logging.INFO,
+                                 is_print=True)
             try:
                 download_model_from_comet(workspace_name, model_name.replace('_', '-'), version,
                                           output_path=output_path)
@@ -63,7 +65,7 @@ class MLClient:
                     raise e
 
         self.loaded_model = load_model_from_file(path_to_file)
-        self.logger.auto_log(f'Model {model_name} loaded successfully', is_print=True)
+        self.logger.auto_log(f'Model {model_name} loaded successfully', logging.INFO, is_print=True)
         return self.loaded_model
 
     def predict(self, data, features, features_to_one_hot=[], one_hot_features=[]):

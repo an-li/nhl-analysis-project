@@ -43,7 +43,7 @@ def before_first_request():
     """
 
     current_log = 'Flask Application Started'
-    logger.auto_log(current_log, is_print=True)
+    logger.auto_log(current_log, logging.INFO, is_print=True)
 
     # TODO: any other initialization before the first request (e.g. load default model)
     ml_client.load_default_model()
@@ -59,7 +59,7 @@ def logs():
             lines = f.readlines()
     except:
         json_format_error = 'cant read flask.log'
-        response_data = logger.auto_log(json_format_error, is_print=True)
+        response_data = logger.auto_log(json_format_error, logging.ERROR, is_print=True)
         return jsonify(response_data), 400
 
     return jsonify(lines)
@@ -88,7 +88,7 @@ def download_registry_model():
         content_json = request.get_json()
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = logger.auto_log(json_format_error, is_print=True)
+        response_data = logger.auto_log(json_format_error, logging.ERROR, is_print=True)
         return jsonify(response_data), 400
 
     print(content_json)
@@ -102,7 +102,7 @@ def download_registry_model():
         ml_client.extract_model_from_file(workspace, model, version, extension, True)
     except Exception as e:
         message = f'Cannot load model {model}!'
-        response = logger.auto_log(message, e, True)
+        response = logger.auto_log(message, logging.ERROR, exception=e, is_print=True)
         return jsonify(response), 500
 
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
@@ -125,7 +125,7 @@ def predict():
         content_json = request.get_json()
     except:
         json_format_error = 'JSON file not properly formatted'
-        response_data = logger.auto_log(json_format_error, is_print=True)
+        response_data = logger.auto_log(json_format_error, logging.ERROR, is_print=True)
         return jsonify(response_data), 400
 
     x_val = content_json['data']
@@ -137,12 +137,12 @@ def predict():
         predicted_data = ml_client.predict(pd.DataFrame(x_val), features, features_to_one_hot, one_hot_features)
     except Exception as e:
         current_log = 'X Data was not properly formatted'
-        response_data = logger.auto_log(current_log, e, is_print=True)
+        response_data = logger.auto_log(current_log, logging.ERROR, exception=e, is_print=True)
         return jsonify(response_data), 500
 
     response = {"predictions": predicted_data.replace({np.nan: None}).to_dict(orient='records')}
 
-    logger.auto_log("Predictions loaded successfully", is_print=True)
+    logger.auto_log("Predictions loaded successfully", logging.INFO, is_print=True)
     return jsonify(response), 200  # response must be json serializable!
 
 

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
+import streamlit.logger
 
 from ift6758.clients.game_client import GameClient
 from ift6758.logging.logger import Logger
@@ -16,10 +17,16 @@ Feel free to experiment with layout and adding functionality!
 Just make sure that the required functionality is included as well
 """
 
+streamlit.logger.get_logger = logging.getLogger
+streamlit.logger.setup_formatter = None
+streamlit.logger.update_formatter = lambda *a, **k: None
+streamlit.logger.set_log_level = lambda *a, **k: None
+
 st.title("IFT6758-A22-G3-Projet")
 
 LOG_FILE = os.environ.get("STREAMLIT_LOG", "streamlit.log")
 logger = Logger(LOG_FILE, 'streamlit', logging.INFO)
+streamlit.logger = logger
 
 game_client = GameClient(logger)
 
@@ -36,7 +43,8 @@ with open('features_by_model.json', 'rb') as fp:
 
 
 def ping_game(game_id):
-    logger.auto_log(f'Predicting data for game {game_id} using model {st.session_state.model}', is_print=True)
+    logger.auto_log(f'Predicting data for game {game_id} using model {st.session_state.model}', logging.INFO,
+                    is_print=True)
     shots_goals, last_event = game_client.load_shots_and_last_event(game_id)
 
     # If some data already exists for game, only need to predict remaining indices
@@ -90,7 +98,7 @@ def download_model(workspace, model, version):
             del st.session_state[key]
 
         st.session_state.model = model
-        logger.auto_log(f'Model {model} loaded successfully', is_print=True)
+        logger.auto_log(f'Model {model} loaded successfully', logging.INFO, is_print=True)
 
 
 with st.sidebar:

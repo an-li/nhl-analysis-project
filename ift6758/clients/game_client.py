@@ -1,3 +1,5 @@
+import logging
+
 from ift6758.api.nhl_api_service import get_game_live_feed
 from ift6758.features.data_extractor import add_info_for_games, add_previous_event_for_shots_and_goals
 from ift6758.utilities.game_utilities import plays_to_frame
@@ -24,12 +26,12 @@ class GameClient:
         """
 
         current_log = f'Retrieving data for game {game_id}'
-        self.logger.auto_log(current_log, is_print=True)
+        self.logger.auto_log(current_log, logging.DEBUG, is_print=True)
 
         plays = plays_to_frame(get_game_live_feed(game_id, start_timecode))
         if len(plays) == 0:
-            current_log = 'No events available'
-            self.logger.auto_log(current_log, is_print=True)
+            current_log = f'No events available for game {game_id}'
+            self.logger.auto_log(current_log, logging.INFO, is_print=True)
             return plays, {}
 
         plays = add_info_for_games(plays, columns_to_keep, [])
@@ -40,8 +42,8 @@ class GameClient:
 
         shots_goals = add_previous_event_for_shots_and_goals(plays).drop(columns=['gameId'])
         if len(shots_goals) == 0:
-            current_log = 'No shots or goals available'
-            self.logger.auto_log(current_log, is_print=True)
+            current_log = f'No shots or goals available for game_id {game_id}'
+            self.logger.auto_log(current_log, logging.INFO, is_print=True)
             return shots_goals, last_event
 
         # Fill missing emptyNet and strength info
@@ -49,6 +51,6 @@ class GameClient:
         shots_goals['strength'] = shots_goals['strength'].fillna('Even')
 
         current_log = 'Game data loaded successfully'
-        self.logger.auto_log(current_log, is_print=True)
+        self.logger.auto_log(current_log, logging.INFO, is_print=True)
 
         return shots_goals, last_event
