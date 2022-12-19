@@ -4,12 +4,16 @@ import os
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import requests
 import streamlit as st
 import streamlit.logger
 
+from PIL import Image
 from ift6758.clients.game_client import GameClient
 from ift6758.logging.logger import Logger
+from ift6758.utilities.game_utilities import generate_shot_map_matrix
+from ift6758.visualizations.advanced_visualizations import create_dropdown, update_figure_layout
 
 """
 General template for your streamlit app. 
@@ -65,7 +69,7 @@ def ping_game(game_id):
         if r.status_code == 200:
             predictions = pd.DataFrame(r.json()['predictions'])
             shots_goals_with_predictions = shots_goals.merge(predictions, how='left', on='eventIdx')
-            if st.session_state.get(f'predictions_{game_id}'):
+            if st.session_state.get(f'predictions_{game_id}') is not None:
                 st.session_state[f'predictions_{game_id}'] = pd.concat(
                     [st.session_state[f'predictions_{game_id}'], shots_goals_with_predictions], ignore_index=True)
             else:
@@ -135,3 +139,76 @@ with st.container():
 with st.container():
     # TODO: Add data used for predictions
     pass
+
+with st.container():
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+        chart_title = f'Number of shots by ice zone (5×5 ft)'
+
+        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+
+        fig = go.Figure()
+
+        team_list = game_data['team'].sort_values(kind='mergesort').unique()
+        buttons = []
+        visible = [False] * len(team_list)
+        index = 0
+
+        buttons.append(dict(label='Select a team...',
+                            method='update',
+                            args=[{'visible': visible},
+                                  {'title': chart_title,
+                                   'showlegend': False}]))
+
+        base_matrix = pd.DataFrame(np.zeros(shape=(21, 19)), columns=range(-45, 50, 5), index=range(0, 105, 5))
+
+        for team in team_list:
+            shot_matrix = generate_shot_map_matrix(game_data[game_data['team'] == team], 5.0)
+            shot_matrix_aligned = np.add(shot_matrix.align(base_matrix, fill_value=0)[0], base_matrix)
+
+            fig.add_trace(go.Contour(name=team, z=shot_matrix_aligned, showscale=True, connectgaps=True,
+                      colorscale=[[0, 'rgb(255, 255, 255)'], [1, 'rgb(255,0,0)']],
+                      x=shot_matrix_aligned.columns, y=shot_matrix_aligned.index, line_smoothing=1.3, visible=False))
+
+            visible_copy = visible.copy()
+            visible_copy[index] = True
+
+            buttons.append(dict(label=team,
+                                method='update',
+                                args=[{'visible': visible_copy},
+                                      {'title': chart_title,
+                                       'showlegend': False}]))
+
+            index += 1
+
+        fig.update_layout(
+            width=800,
+            height=955,
+            autosize=False,
+            margin=dict(t=230, b=0, l=0, r=0),
+            title=chart_title,
+            template="plotly_white",
+        )
+        # Add axes title
+        fig.update_xaxes(title_text='Distance from center of rink (ft)')
+        fig.update_yaxes(title_text='Distance from center ice to goal (ft)')
+        # Update 3D scene options
+        fig.update_scenes(
+            aspectratio=dict(x=1, y=1, z=0.7),
+            aspectmode="auto"
+        )
+        img = Image.open('figures/nhl_rink_offensive.png')
+        fig.add_layout_image(
+            dict(
+                source=img,
+                xref="paper", yref="paper",
+                x=0.5, y=0,
+                sizex=1, sizey=1,
+                xanchor="center",
+                yanchor="bottom",
+                opacity=0.3,
+            )
+        )
+
+        create_dropdown(fig, buttons)
+
+        st.plotly_chart(fig, use_container_width=True)

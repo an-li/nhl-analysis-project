@@ -178,7 +178,8 @@ def generate_shot_map_matrix(plays_df: pd.DataFrame, bin_size: float = 1.0) -> p
     # Do not count shootout plays
     plays_df = plays_df[plays_df['periodType'].isin(['REGULAR', 'OVERTIME'])].copy()
 
-    game_team_pairs = len(plays_df.groupby(['gameId', 'team']))
+    game_team_pairs = len(plays_df.groupby(['gameId', 'team'])) if 'gameId' in plays_df.columns else len(
+        plays_df.groupby(['team']))
 
     # Transpose x and y for plays on right side of rink to the other side so all plays are on the same side
     plays_df.loc[plays_df['rinkSide'] == 'right', 'x'] = -1 * plays_df['x']

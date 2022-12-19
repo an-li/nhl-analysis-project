@@ -36,10 +36,10 @@ def generate_static_shot_map(plays_df: pd.DataFrame, team: str, season: int, sav
     # Sort by decreasing distance from center ice so center ice appears at the bottom of the graph
     difference_matrix.sort_index(ascending=False, kind='mergesort', inplace=True)
 
-    fig.add_trace(_create_contour_map(difference_matrix, team, True))
+    fig.add_trace(create_contour_map(difference_matrix, team, True))
 
-    _update_figure_layout(fig, _create_title(team, season, global_shots_per_game, global_goals_per_game,
-                                             team_shots_per_game, team_goals_per_game))
+    update_figure_layout(fig, _create_title(team, season, global_shots_per_game, global_goals_per_game,
+                                            team_shots_per_game, team_goals_per_game))
 
     if plot:
         fig.show()
@@ -92,7 +92,7 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, season: int, save: boo
             # Sort by decreasing distance from center ice so center ice appears at the bottom of the graph
             difference_matrix.sort_index(ascending=False, kind='mergesort', inplace=True)
 
-            fig.add_trace(_create_contour_map(difference_matrix, current_team, False))
+            fig.add_trace(create_contour_map(difference_matrix, current_team, False))
 
             visible_copy = visible.copy()
             visible_copy[index] = True
@@ -108,9 +108,9 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, season: int, save: boo
 
             index += 1
 
-    _update_figure_layout(fig, f'Plan des tirs en fonction de l\'équipe pour la saison {season}')
+    update_figure_layout(fig, f'Plan des tirs en fonction de l\'équipe pour la saison {season}')
 
-    _create_dropdown(fig, buttons)
+    create_dropdown(fig, buttons)
 
     if plot:
         fig.show()
@@ -163,7 +163,7 @@ def _create_title(team: str, season: int, global_shots_per_game: float, global_g
     return f'Plan des tirs de l\'équipe {team} pour la saison {season}<br>{round(team_shots_per_game, 2)} tirs par heure ({round((team_shots_per_game - global_shots_per_game) / global_shots_per_game * 100, 2)}% par rapport à la moyenne)<br>{round(team_goals_per_game, 2)} buts par heure ({round((team_goals_per_game - global_goals_per_game) / global_goals_per_game * 100, 2)}% par rapport à la moyenne)'
 
 
-def _create_contour_map(difference_matrix: pd.DataFrame, name: str, visible: bool = True) -> go.Contour:
+def create_contour_map(difference_matrix: pd.DataFrame, name: str, visible: bool = True) -> go.Contour:
     """
     Create a contour map with the difference matrix, can optionally make it invisible
 
@@ -185,7 +185,7 @@ def _create_contour_map(difference_matrix: pd.DataFrame, name: str, visible: boo
                       zmax=largest_diff, line_smoothing=1.3, visible=visible)
 
 
-def _update_figure_layout(fig, title: str):
+def update_figure_layout(fig, title: str):
     """
     Update layout for plot with title
 
@@ -227,7 +227,7 @@ def _update_figure_layout(fig, title: str):
     )
 
 
-def _create_dropdown(fig, buttons):
+def create_dropdown(fig, buttons):
     """
     Create dropdown for figure
 
