@@ -19,7 +19,7 @@ from waitress import serve
 from ift6758.clients.ml_client import MLClient
 from ift6758.logging.logger import Logger
 
-# import ift6758
+PORT = os.environ.get("SERVING_PORT", "8080")
 
 app = Flask(__name__)
 
@@ -149,4 +149,4 @@ def predict():
 # print('Running flask app in development mode.')
 # app.run()
 print('Running flask app in production mode.')
-serve(app, listen='*:8080')
+serve(app, listen=f'*:{PORT}')

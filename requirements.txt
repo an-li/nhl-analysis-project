@@ -19,7 +19,6 @@ imblearn
 xgboost
 streamlit
 flask
-gunicorn
 scikit-learn
 markupsafe==2.0.1
 waitress

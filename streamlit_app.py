@@ -34,9 +34,9 @@ streamlit.logger = logger
 
 game_client = GameClient(logger)
 
-PORT = "8080"
-IP = "http://127.0.0.1:"
-address = IP + PORT
+IP = os.environ.get("SERVING_IP", "0.0.0.0")
+PORT = os.environ.get("SERVING_PORT", "8080")
+address = f"http://{IP}:{PORT}"
 
 # Save name of default model
 if not st.session_state.get('model'):
@@ -182,7 +182,7 @@ with st.container():
 
         fig.update_layout(
             width=800,
-            height=955,
+            height=940,
             autosize=False,
             margin=dict(t=230, b=0, l=0, r=0),
             title=chart_title,
