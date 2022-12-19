@@ -29,7 +29,7 @@ streamlit.logger = logger
 game_client = GameClient(logger)
 
 # Serving Flask server setup
-IP = os.environ.get("SERVING_IP", "localhost")
+IP = os.environ.get("SERVING_IP", "127.0.0.1")
 PORT = os.environ.get("SERVING_PORT", "8080")
 address = f"http://{IP}:{PORT}"
 
