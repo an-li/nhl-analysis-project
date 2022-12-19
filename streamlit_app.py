@@ -36,11 +36,11 @@ address = f"http://{IP}:{PORT}"
 TITLE = 'NHL Game Analyzer'
 
 st.set_page_config(
-    page_title="NHL Game Analyzer",
+    page_title=TITLE,
     initial_sidebar_state="expanded"
 )
 
-st.title("NHL Game Analyzer")
+st.title(TITLE)
 
 # Save name of default model
 if not st.session_state.get('model'):
@@ -169,6 +169,7 @@ with st.container():
             shot_matrix = generate_shot_map_matrix(game_data[game_data['team'] == team], 5.0)
             shot_matrix_aligned = np.add(shot_matrix.align(base_matrix, fill_value=0)[0], base_matrix)
 
+            # Make a series for each team
             fig.add_trace(go.Contour(name=team, z=shot_matrix_aligned, showscale=True, connectgaps=True,
                                      colorscale=[[0, 'rgb(255, 255, 255)'], [1, 'rgb(255,0,0)']],
                                      x=shot_matrix_aligned.columns, y=shot_matrix_aligned.index, line_smoothing=1.3,
