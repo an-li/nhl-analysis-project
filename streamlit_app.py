@@ -212,3 +212,9 @@ with st.container():
         create_dropdown(fig, buttons)
 
         st.plotly_chart(fig, use_container_width=True)
+
+        st.write('Similar to the interactive shot map done in Milestone 1 comparing a team\'s shot over all games with '
+                 'the NHL average, this simplified version shows the number of shots for each team for every 5×5 ft '
+                 'square.\n'
+                 'Please select a team in the dropdown to see the shot map for the selected team in the '
+                 'currently selected game.')
