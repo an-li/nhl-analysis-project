@@ -8,35 +8,39 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 import streamlit.logger
-
 from PIL import Image
+
 from ift6758.clients.game_client import GameClient
 from ift6758.logging.logger import Logger
 from ift6758.utilities.game_utilities import generate_shot_map_matrix
-from ift6758.visualizations.advanced_visualizations import create_dropdown, update_figure_layout
+from ift6758.visualizations.advanced_visualizations import create_dropdown
 
-"""
-General template for your streamlit app. 
-Feel free to experiment with layout and adding functionality!
-Just make sure that the required functionality is included as well
-"""
-
+# Logging setup
 streamlit.logger.get_logger = logging.getLogger
 streamlit.logger.setup_formatter = None
 streamlit.logger.update_formatter = lambda *a, **k: None
 streamlit.logger.set_log_level = lambda *a, **k: None
 
-st.title("IFT6758-A22-G3-Projet")
-
 LOG_FILE = os.environ.get("STREAMLIT_LOG", "streamlit.log")
 logger = Logger(LOG_FILE, 'streamlit', logging.INFO)
 streamlit.logger = logger
 
+# Game client setup
 game_client = GameClient(logger)
 
-IP = os.environ.get("SERVING_IP", "0.0.0.0")
+# Serving Flask server setup
+IP = os.environ.get("SERVING_IP", "localhost")
 PORT = os.environ.get("SERVING_PORT", "8080")
 address = f"http://{IP}:{PORT}"
+
+TITLE = 'NHL Game Analyzer'
+
+st.set_page_config(
+    page_title="NHL Game Analyzer",
+    initial_sidebar_state="expanded"
+)
+
+st.title("NHL Game Analyzer")
 
 # Save name of default model
 if not st.session_state.get('model'):
@@ -128,7 +132,7 @@ with st.sidebar:
 
 with st.container():
     # TODO: Add Game ID input
-    st.text_input("Game Id", key="game_id")
+    st.text_input("Game ID", key="game_id")
     if st.button('Ping Game'):
         ping_game(st.session_state.game_id)
 
@@ -166,8 +170,9 @@ with st.container():
             shot_matrix_aligned = np.add(shot_matrix.align(base_matrix, fill_value=0)[0], base_matrix)
 
             fig.add_trace(go.Contour(name=team, z=shot_matrix_aligned, showscale=True, connectgaps=True,
-                      colorscale=[[0, 'rgb(255, 255, 255)'], [1, 'rgb(255,0,0)']],
-                      x=shot_matrix_aligned.columns, y=shot_matrix_aligned.index, line_smoothing=1.3, visible=False))
+                                     colorscale=[[0, 'rgb(255, 255, 255)'], [1, 'rgb(255,0,0)']],
+                                     x=shot_matrix_aligned.columns, y=shot_matrix_aligned.index, line_smoothing=1.3,
+                                     visible=False))
 
             visible_copy = visible.copy()
             visible_copy[index] = True
