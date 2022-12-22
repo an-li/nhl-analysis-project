@@ -85,12 +85,14 @@ def ping_game(game_id):
         )
         if r.status_code == 200:
             predictions = pd.DataFrame(r.json()['predictions'])
+            shots_goals['isGoal'] = shots_goals['isGoal'].astype(bool)
             shots_goals_with_predictions = shots_goals.merge(predictions, how='left', on='eventIdx')
-            if st.session_state.get(f'predictions_{game_id}') is not None:
-                st.session_state[f'predictions_{game_id}'] = pd.concat(
-                    [st.session_state[f'predictions_{game_id}'], shots_goals_with_predictions], ignore_index=True)
+            if st.session_state.get(f'predictions_{game_id}'):
+                existing_predictions = st.session_state[f'predictions_{game_id}']
+                st.session_state[f'predictions_{game_id}'] = existing_predictions.extend(
+                    shots_goals_with_predictions.to_dict(orient='records'))
             else:
-                st.session_state[f'predictions_{game_id}'] = shots_goals_with_predictions
+                st.session_state[f'predictions_{game_id}'] = shots_goals_with_predictions.to_dict(orient='records')
 
     # Finally, save last event for current game
     if last_event:
@@ -138,10 +140,6 @@ with st.sidebar:
     if st.button('Get Model'):
         download_model(workspace_option, model_option, version_option)
 
-    # TODO: Remove this before handing the project
-    if st.button('DEBUG ONLY: Test Ping Server'):
-        ping_server()
-
 with st.container():
     # Add Game ID input
     st.text_input("Game ID", key="game_id")
@@ -150,7 +148,7 @@ with st.container():
 
 with st.container():
     # Add Game info and predictions
-    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}'):
         # Set information variables
         team_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.home']
         team_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.away']
@@ -162,7 +160,7 @@ with st.container():
         period = st.session_state.get(f'last_event_{st.session_state.game_id}')['ordinalNum']
         time = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodTimeRemaining']
 
-        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+        game_data = pd.DataFrame(st.session_state.get(f'predictions_{st.session_state.game_id}'))
 
         expected_goals = game_data[['team', 'goalProbability']].groupby('team').sum().reset_index()
         expected_goals_home = expected_goals.loc[expected_goals['team'] == team_home, 'goalProbability'].values[
@@ -177,7 +175,7 @@ with st.container():
         st.write(f'Period : {period} - {time}')
 
         # actual goals and goals predictions
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         col1.metric(label=f'{team_home} (actual)', value=f'{expected_goals_home} ({goals_home})',
                     delta=(goals_home - expected_goals_home).round(2), delta_color="normal")
         col2.metric(label=f'{team_away} (actual)', value=f'{expected_goals_away} ({goals_away})',
@@ -189,10 +187,10 @@ with st.container():
 
 with st.container():
     # Add data used for predictions
-    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}'):
         st.header("Display Data used for predictions and predictions: ")
 
-        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[
+        game_data = pd.DataFrame(st.session_state.get(f'predictions_{st.session_state.game_id}'))[
             ['eventIdx', 'team', 'ordinalNum', 'periodTimeRemaining'] + features_by_model[st.session_state.model][
                 'features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['isGoal',
                                                                                                   'goalProbability']].rename(
@@ -200,10 +198,10 @@ with st.container():
         st.dataframe(game_data)
 
 with st.container():
-    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}'):
         chart_title = f'Number of shots by ice zone (5×5 ft)'
 
-        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+        game_data = pd.DataFrame(st.session_state.get(f'predictions_{st.session_state.game_id}'))
 
         fig = go.Figure()
 
