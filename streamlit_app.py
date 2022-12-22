@@ -196,7 +196,7 @@ with st.container():
             ['eventIdx', 'team', 'ordinalNum', 'periodTimeRemaining'] + features_by_model[st.session_state.model][
                 'features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['isGoal',
                                                                                                   'goalProbability']].rename(
-            {'ordinalNum': 'period'})
+            columns={'ordinalNum': 'period'})
         st.dataframe(game_data)
 
 with st.container():
