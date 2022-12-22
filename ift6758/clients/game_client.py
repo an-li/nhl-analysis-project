@@ -38,7 +38,7 @@ class GameClient:
 
         last_event = plays.tail(1)[
             ['eventIdx', 'dateTime', 'ordinalNum', 'periodTimeRemaining', 'team.away', 'goals.away', 'team.home',
-             'goals.home']].to_dict(orient='records')[0]
+             'goals.home', 'rinkSide', 'periodType']].to_dict(orient='records')[0]
 
         shots_goals = add_previous_event_for_shots_and_goals(plays).drop(columns=['gameId'])
         if len(shots_goals) == 0:
