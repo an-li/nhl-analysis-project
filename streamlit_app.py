@@ -15,7 +15,6 @@ from ift6758.logging.logger import Logger
 from ift6758.utilities.game_utilities import generate_shot_map_matrix
 from ift6758.visualizations.advanced_visualizations import create_dropdown
 
-
 # Logging setup
 streamlit.logger.get_logger = logging.getLogger
 streamlit.logger.setup_formatter = None
@@ -34,7 +33,6 @@ IP = os.environ.get("SERVING_IP", "127.0.0.1")
 PORT = os.environ.get("SERVING_PORT", "8080")
 address = f"http://{IP}:{PORT}"
 
-
 TITLE = 'NHL Game Analyzer'
 
 st.set_page_config(
@@ -44,7 +42,7 @@ st.set_page_config(
 
 image = Image.open('images/ready-for-the-drop.jpg')
 
-col1, col2, col3 = st.columns([1,6,1])
+col1, col2, col3 = st.columns([1, 6, 1])
 
 with col1:
     st.write("")
@@ -54,7 +52,6 @@ with col2:
 
 with col3:
     st.write("")
-
 
 st.title(TITLE)
 
@@ -168,19 +165,23 @@ with st.container():
         game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
 
         expected_goals = game_data[['team', 'goalProbability']].groupby('team').sum().reset_index()
-        expected_goals_home = expected_goals.loc[expected_goals['team'] == team_home, 'goalProbability'].values[0].round(2)
-        expected_goals_away = expected_goals.loc[expected_goals['team'] == team_away, 'goalProbability'].values[0].round(2)
+        expected_goals_home = expected_goals.loc[expected_goals['team'] == team_home, 'goalProbability'].values[
+            0].round(2)
+        expected_goals_away = expected_goals.loc[expected_goals['team'] == team_away, 'goalProbability'].values[
+            0].round(2)
 
-        #headers with game_id, team names
+        # headers with game_id, team names
         st.subheader(f'Game {game}: {team_home} vs {team_away}')
 
-        #period, time remaining
+        # period, time remaining
         st.write(f'Period : {period} - {time}')
 
-        #actual goals and goals predictions
+        # actual goals and goals predictions
         col1, col2, col3 = st.columns(3)
-        col1.metric(label= f'{team_home} (actual)', value=f'{expected_goals_home} ({goals_home})', delta=(goals_home - expected_goals_home).round(2), delta_color="normal")
-        col2.metric(label= f'{team_away} (actual)', value=f'{expected_goals_away} ({goals_away})', delta=(goals_away - expected_goals_away).round(2), delta_color="normal")
+        col1.metric(label=f'{team_home} (actual)', value=f'{expected_goals_home} ({goals_home})',
+                    delta=(goals_home - expected_goals_home).round(2), delta_color="normal")
+        col2.metric(label=f'{team_away} (actual)', value=f'{expected_goals_away} ({goals_away})',
+                    delta=(goals_away - expected_goals_away).round(2), delta_color="normal")
     elif st.session_state.get('game_id'):
         st.subheader(f'No data available for game {st.session_state.get("game_id")}')
     else:
@@ -189,12 +190,14 @@ with st.container():
 with st.container():
     # Add data used for predictions
     if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
-
         st.header("Display Data used for predictions and predictions: ")
 
-        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[['eventIdx', 'team', 'period', 'periodTimeRemaining'] + features_by_model[st.session_state.model]['features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['isGoal', 'goalProbability']]
+        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[
+            ['eventIdx', 'team', 'ordinalNum', 'periodTimeRemaining'] + features_by_model[st.session_state.model][
+                'features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['isGoal',
+                                                                                                  'goalProbability']].rename(
+            {'ordinalNum': 'period'})
         st.dataframe(game_data)
-
 
 with st.container():
     if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
