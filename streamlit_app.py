@@ -192,7 +192,7 @@ with st.container():
 
         st.header("Display Data used for predictions and predictions: ")
 
-        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[['eventIdx', 'team'] + features_by_model[st.session_state.model]['features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['goalProbability']]
+        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[['eventIdx', 'team', 'period', 'periodTimeRemaining'] + features_by_model[st.session_state.model]['features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['isGoal', 'goalProbability']]
         st.dataframe(game_data)
 
 
