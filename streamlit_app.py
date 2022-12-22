@@ -181,7 +181,10 @@ with st.container():
         col1, col2, col3 = st.columns(3)
         col1.metric(label= f'{team_home} (actual)', value=f'{expected_goals_home} ({goals_home})', delta=(goals_home - expected_goals_home).round(2), delta_color="normal")
         col2.metric(label= f'{team_away} (actual)', value=f'{expected_goals_away} ({goals_away})', delta=(goals_away - expected_goals_away).round(2), delta_color="normal")
-
+    elif st.session_state.get('game_id'):
+        st.subheader(f'No data available for game {st.session_state.get("game_id")}')
+    else:
+        st.subheader(f'Please specify a game ID above and click \'Ping game\'')
 
 with st.container():
     # Add data used for predictions
