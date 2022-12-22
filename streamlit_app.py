@@ -15,6 +15,7 @@ from ift6758.logging.logger import Logger
 from ift6758.utilities.game_utilities import generate_shot_map_matrix
 from ift6758.visualizations.advanced_visualizations import create_dropdown
 
+
 # Logging setup
 streamlit.logger.get_logger = logging.getLogger
 streamlit.logger.setup_formatter = None
@@ -33,12 +34,27 @@ IP = os.environ.get("SERVING_IP", "127.0.0.1")
 PORT = os.environ.get("SERVING_PORT", "8080")
 address = f"http://{IP}:{PORT}"
 
+
 TITLE = 'NHL Game Analyzer'
 
 st.set_page_config(
     page_title=TITLE,
     initial_sidebar_state="expanded"
 )
+
+image = Image.open('images/ready-for-the-drop.jpg')
+
+col1, col2, col3 = st.columns([1,6,1])
+
+with col1:
+    st.write("")
+
+with col2:
+    st.image(image, width=500)
+
+with col3:
+    st.write("")
+
 
 st.title(TITLE)
 
@@ -138,10 +154,53 @@ with st.container():
 
 with st.container():
     # TODO: Add Game info and predictions
+
+    # Set information variables 
+    team_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.home']
+    team_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.away']
+
+    goals_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.home']
+    goals_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.away']
+
+    game = st.session_state.get('game_id')
+    period = st.session_state.get(f'last_event_{st.session_state.game_id}')['ordinalNum']
+    time = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodTimeRemaining']
+    rink_side = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodType']
+
+    game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+
+
+    expected_goals_home = game_data[['team', 'goalProbability']].groupby('team').sum()
+    expected_goals_away = game_data[['team', 'goalProbability']].groupby('team').sum()
+   
+
+    #headers with game_id, team names
+    st.subheader(f'Game {game} : {team_home} vs {team_away}')
+    st.write('Click to get game information')
+
+    #When button clicked, get information 
+    if st.button('Game information'):
+
+        #period, time remaining
+        st.write(f'Period : {period} - {time} - {rink_side}')
+        
+        #actual goals and goals predictions 
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label= f'{team_home} (actual)', value= f'{expected_goals_home}({goals_home})', delta='différence', delta_color="off")
+        col2.metric(label= f'{team_away} (actual)', value= f'{expected_goals_away}({goals_away})', delta='différence', delta_color="off") 
+              
     pass
 
 with st.container():
     # TODO: Add data used for predictions
+
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+
+        st.header("Display Data used for predictions and predictions : ")
+
+        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+        st.dataframe(game_data)
+
     pass
 
 with st.container():
