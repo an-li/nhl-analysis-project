@@ -94,7 +94,6 @@ def ping_game(game_id):
                     [st.session_state[f'predictions_{game_id}'], shots_goals_with_predictions], ignore_index=True)
             else:
                 st.session_state[f'predictions_{game_id}'] = shots_goals_with_predictions
-            print(shots_goals_with_predictions.to_dict(orient='records'))
 
     # Finally, save last event for current game
     if last_event:
@@ -126,7 +125,7 @@ def download_model(workspace, model, version):
 
 
 with st.sidebar:
-    # TODO: Add input for the sidebar
+    # Add input for the sidebar
     workspace_option = st.selectbox(
         'Workspace',
         ('ift6758a-a22-g3-projet',))
@@ -147,61 +146,52 @@ with st.sidebar:
         ping_server()
 
 with st.container():
-    # TODO: Add Game ID input
+    # Add Game ID input
     st.text_input("Game ID", key="game_id")
     if st.button('Ping Game'):
         ping_game(st.session_state.game_id)
 
 with st.container():
-    # TODO: Add Game info and predictions
-
-    # Set information variables 
-    team_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.home']
-    team_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.away']
-
-    goals_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.home']
-    goals_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.away']
-
-    game = st.session_state.get('game_id')
-    period = st.session_state.get(f'last_event_{st.session_state.game_id}')['ordinalNum']
-    time = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodTimeRemaining']
-    rink_side = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodType']
-
-    game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
-
-
-    expected_goals_home = game_data[['team', 'goalProbability']].groupby('team').sum()
-    expected_goals_away = game_data[['team', 'goalProbability']].groupby('team').sum()
-   
-
-    #headers with game_id, team names
-    st.subheader(f'Game {game} : {team_home} vs {team_away}')
-    st.write('Click to get game information')
-
-    #When button clicked, get information 
-    if st.button('Game information'):
-
-        #period, time remaining
-        st.write(f'Period : {period} - {time} - {rink_side}')
-        
-        #actual goals and goals predictions 
-        col1, col2, col3 = st.columns(3)
-        col1.metric(label= f'{team_home} (actual)', value= f'{expected_goals_home}({goals_home})', delta='différence', delta_color="off")
-        col2.metric(label= f'{team_away} (actual)', value= f'{expected_goals_away}({goals_away})', delta='différence', delta_color="off") 
-              
-    pass
-
-with st.container():
-    # TODO: Add data used for predictions
-
+    # Add Game info and predictions
     if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+        # Set information variables
+        team_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.home']
+        team_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['team.away']
 
-        st.header("Display Data used for predictions and predictions : ")
+        goals_home = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.home']
+        goals_away = st.session_state.get(f'last_event_{st.session_state.game_id}')['goals.away']
+
+        game = st.session_state.get('game_id')
+        period = st.session_state.get(f'last_event_{st.session_state.game_id}')['ordinalNum']
+        time = st.session_state.get(f'last_event_{st.session_state.game_id}')['periodTimeRemaining']
 
         game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')
+
+        expected_goals = game_data[['team', 'goalProbability']].groupby('team').sum().reset_index()
+        expected_goals_home = expected_goals.loc[expected_goals['team'] == team_home, 'goalProbability'].values[0].round(2)
+        expected_goals_away = expected_goals.loc[expected_goals['team'] == team_away, 'goalProbability'].values[0].round(2)
+
+        #headers with game_id, team names
+        st.subheader(f'Game {game}: {team_home} vs {team_away}')
+
+        #period, time remaining
+        st.write(f'Period : {period} - {time}')
+
+        #actual goals and goals predictions
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label= f'{team_home} (actual)', value=f'{expected_goals_home} ({goals_home})', delta=(goals_home - expected_goals_home).round(2), delta_color="normal")
+        col2.metric(label= f'{team_away} (actual)', value=f'{expected_goals_away} ({goals_away})', delta=(goals_away - expected_goals_away).round(2), delta_color="normal")
+
+
+with st.container():
+    # Add data used for predictions
+    if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
+
+        st.header("Display Data used for predictions and predictions: ")
+
+        game_data = st.session_state.get(f'predictions_{st.session_state.game_id}')[['eventIdx', 'team'] + features_by_model[st.session_state.model]['features'] + features_by_model[st.session_state.model]['features_to_one_hot'] + ['goalProbability']]
         st.dataframe(game_data)
 
-    pass
 
 with st.container():
     if st.session_state.get('game_id') and st.session_state.get(f'predictions_{st.session_state.game_id}') is not None:
