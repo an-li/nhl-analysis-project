@@ -3,9 +3,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from ift6758.utilities.game_utilities import plays_to_frame, get_game_data, extract_players
-from ift6758.utilities.math_utilities import two_dimensional_euclidean_distance, get_angle_with_x_axis
-from ift6758.utilities.schedule_utilities import get_game_list_for_date_range
+from nhlanalysis.utilities.game_utilities import plays_to_frame, get_game_data, extract_players
+from nhlanalysis.utilities.math_utilities import two_dimensional_euclidean_distance, get_angle_with_x_axis
+from nhlanalysis.utilities.schedule_utilities import get_game_list_for_date_range
 
 
 def extract_and_cleanup_play_data(start_date: datetime, end_date: datetime, event_types: list = [],

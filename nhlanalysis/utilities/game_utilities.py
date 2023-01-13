@@ -5,7 +5,7 @@ import numpy as np
 import orjson
 import pandas as pd
 
-from ift6758.api.nhl_api_service import get_game_live_feed
+from nhlanalysis.api.nhl_api_service import get_game_live_feed
 
 
 def get_game_data(game_id: str, save_to_json: bool = True) -> dict:

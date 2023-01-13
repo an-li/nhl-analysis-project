@@ -16,8 +16,8 @@ import pandas as pd
 from flask import Flask, request, jsonify
 from waitress import serve
 
-from ift6758.clients.ml_client import MLClient
-from ift6758.logging.logger import Logger
+from nhlanalysis.clients.ml_client import MLClient
+from nhlanalysis.logging.logger import Logger
 
 PORT = os.environ.get("SERVING_PORT", "8080")
 

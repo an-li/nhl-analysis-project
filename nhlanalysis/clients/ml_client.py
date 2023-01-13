@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import seaborn as sns
 
-from ift6758.utilities.model_utilities import download_model_from_comet, load_model_from_file, \
+from nhlanalysis.utilities.model_utilities import download_model_from_comet, load_model_from_file, \
     filter_and_one_hot_encode_features
 
 sns.set()

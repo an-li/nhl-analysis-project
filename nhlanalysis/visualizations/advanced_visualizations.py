@@ -2,8 +2,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from PIL import Image
 
-from ift6758.utilities.game_utilities import filter_by_team_and_season, generate_shot_map_matrix, get_goals_per_game
-from ift6758.utilities.math_utilities import subtract_and_align_matrices
+from nhlanalysis.utilities.game_utilities import filter_by_team_and_season, generate_shot_map_matrix, get_goals_per_game
+from nhlanalysis.utilities.math_utilities import subtract_and_align_matrices
 
 
 def generate_static_shot_map(plays_df: pd.DataFrame, team: str, season: int, save: bool = True,
@@ -72,10 +72,10 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, season: int, save: boo
     visible = [False] * len(team_list)
     index = 0
 
-    buttons.append(dict(label='Sélectionner une équipe...',
+    buttons.append(dict(label='Select a team...',
                         method='update',
                         args=[{'visible': False},
-                              {'title': f'Plan des tirs en fonction de l\'équipe pour la saison {season}',
+                              {'title': f'Shot map by team for season {season}',
                                'showlegend': False}]))
 
     global_df = filter_by_team_and_season(plays_df, season_filter=season)
@@ -108,7 +108,7 @@ def generate_interactive_shot_map(plays_df: pd.DataFrame, season: int, save: boo
 
             index += 1
 
-    update_figure_layout(fig, f'Plan des tirs en fonction de l\'équipe pour la saison {season}')
+    update_figure_layout(fig, f'Shot map by team for season {season}')
 
     create_dropdown(fig, buttons)
 
@@ -160,7 +160,7 @@ def _create_title(team: str, season: int, global_shots_per_game: float, global_g
         Title containing team name and season, as well as number of shots and goals by hour by team and compared to NHL average
     """
 
-    return f'Plan des tirs de l\'équipe {team} pour la saison {season}<br>{round(team_shots_per_game, 2)} tirs par heure ({round((team_shots_per_game - global_shots_per_game) / global_shots_per_game * 100, 2)}% par rapport à la moyenne)<br>{round(team_goals_per_game, 2)} buts par heure ({round((team_goals_per_game - global_goals_per_game) / global_goals_per_game * 100, 2)}% par rapport à la moyenne)'
+    return f'Shot map for {team} in season {season}<br>{round(team_shots_per_game, 2)} shots per game ({round((team_shots_per_game - global_shots_per_game) / global_shots_per_game * 100, 2)}% compared to average)<br>{round(team_goals_per_game, 2)} goals per hour ({round((team_goals_per_game - global_goals_per_game) / global_goals_per_game * 100, 2)}% compared to average)'
 
 
 def create_contour_map(difference_matrix: pd.DataFrame, name: str, visible: bool = True) -> go.Contour:
@@ -206,8 +206,8 @@ def update_figure_layout(fig, title: str):
         template="plotly_white",
     )
     # Add axes title
-    fig.update_xaxes(title_text='Distance du centre de la patinoire (pi)')
-    fig.update_yaxes(title_text='Distance du centre de la glace au but (pi)')
+    fig.update_xaxes(title_text='Distance from center of rink (pi)')
+    fig.update_yaxes(title_text='Distance from center ice (pi)')
     # Update 3D scene options
     fig.update_scenes(
         aspectratio=dict(x=1, y=1, z=0.7),

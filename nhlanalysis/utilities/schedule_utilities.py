@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from ift6758.api.nhl_api_service import get_schedule_by_date_range
+from nhlanalysis.api.nhl_api_service import get_schedule_by_date_range
 
 
 def get_game_list_for_date_range(start_date: datetime, end_date: datetime) -> pd.DataFrame:

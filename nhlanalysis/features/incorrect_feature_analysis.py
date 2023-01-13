@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from ift6758.utilities.game_utilities import is_in_defensive_zone, \
+from nhlanalysis.utilities.game_utilities import is_in_defensive_zone, \
     get_fraction_of_plays_in_defensive_zone_by_game_and_team
 
 
@@ -18,7 +18,7 @@ def incorrect_feature_analysis(df_train: pd.DataFrame):
     Returns:
 
     """
-    outdir = 'ift6758/data/analysis'
+    outdir = 'nhlanalysis/data/analysis'
     if not os.path.exists(outdir):
         os.makedirs(outdir, exist_ok=True)
 

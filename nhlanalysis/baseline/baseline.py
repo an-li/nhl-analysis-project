@@ -4,7 +4,7 @@ from comet_ml import Experiment
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 
-from ift6758.utilities.model_utilities import *
+from nhlanalysis.utilities.model_utilities import *
 
 
 def baseline_models(df_train: pd.DataFrame, project_name: str, workspace: str, comet: bool = True,

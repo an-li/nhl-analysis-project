@@ -1,6 +1,6 @@
-# IFT6758 Project Repo
+# NHL Analysis Project
 
-Repository for NHL analysis project for Group 3
+Streamlit app for NHL analysis using machine learning algorithms
 
 ## Authors
 
@@ -20,9 +20,9 @@ You should see something similar to the following output:
 
     > pip install -e .
     Obtaining file:///home/USER/project-template
-    Installing collected packages: ift6758
-    Running setup.py develop for ift6758
-    Successfully installed ift6758-0.1.0
+    Installing collected packages: nhlanalysis
+    Running setup.py develop for nhlanalysis
+    Successfully installed nhlanalysis-0.1.0
 
 ## Docker
 
@@ -33,8 +33,8 @@ One thing to note is that its generally a better idea to stick to using `pip` in
 environments in Docker containers, as this approach is generally more lightweight than Conda.
 A common pattern is to copy the `requirements.txt` file into the docker container and then simply 
 do `pip install -r requirements.txt` (done in the Dockerfile).
-You can also copy an entire Python package (e.g. the `ift6758/` folder) into the container, and also
-do a simple `pip install -e ift6758/` (also from the Dockerfile).
+You can also copy an entire Python package (e.g. the `nhlanalysis/` folder) into the container, and also
+do a simple `pip install -e nhlanalysis/` (also from the Dockerfile).
 
 In addition, below are a list of useful docker commands that you will likely need.
 
@@ -44,7 +44,7 @@ Builds a docker image directly the local Dockerfile (in the same directory):
 ```bash
 # docker build -t <TAG>:<VERSION> .
 # eg: 
-docker build -t ift6758/serving:1.0.0 .
+docker build -t nhlanalysis/serving:1.0.0 .
 ```
 
 ### docker images ([ref](https://docs.docker.com/engine/reference/commandline/images/))
@@ -57,11 +57,11 @@ To run the docker image you just created, you could run:
 
 ```bash
 #  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
-docker run -it --expose 127.0.0.1:8890:8890/tcp --env DOCKER_ENV_VAR=$LOCAL_ENV_VAR ift6758/serving:0.0.1 
+docker run -it --expose 127.0.0.1:8890:8890/tcp --env DOCKER_ENV_VAR=$LOCAL_ENV_VAR nhlanalysis/serving:0.0.1 
 ```
 
 In this example, `-it --expose 127.0.0.1:8890:8890/tcp --env DOCKER_ENV_VAR=$LOCAL_ENV_VAR` are the
-`[OPTIONS]`, `ift6758/serving:0.0.1` is the `IMAGE`, and there are no `[COMMAND]` or `[ARG...]`.
+`[OPTIONS]`, `nhlanalysis/serving:0.0.1` is the `IMAGE`, and there are no `[COMMAND]` or `[ARG...]`.
 If you run this command the docker container will run whatever you specified at the `CMD` in your 
 Dockerfile; if this is not specified or it crashes, your container will immediately stop.
 You could alternatively specify a different command; for example setting `[COMMAND]` to `bash` will
@@ -87,7 +87,7 @@ To verify that your container is running, you could run `docker ps`:
 ```bash
 > docker ps
 CONTAINER ID   IMAGE                   COMMAND   CREATED         STATUS         PORTS                      NAMES
-0237661ace81   ift6758/serving:0.0.1   "bash"    4 seconds ago   Up 3 seconds   127.0.0.1:8890->8890/tcp   sleepy_jang
+0237661ace81   nhlanalysis/serving:0.0.1   "bash"    4 seconds ago   Up 3 seconds   127.0.0.1:8890->8890/tcp   sleepy_jang
 ```
 
 ### docker exec ([ref](https://docs.docker.com/engine/reference/commandline/exec/))
@@ -249,11 +249,11 @@ Once installed, open up your terminal (or Anaconda prompt if you're on Windows).
 Install the environment from the specified environment file:
 
     conda env create --file environment.yml
-    conda activate ift6758-conda-env
+    conda activate nhlanalysis-conda-env
 
 After you install, register the environment so jupyter can see it:
 
-    python -m ipykernel install --user --name=ift6758-conda-env
+    python -m ipykernel install --user --name=nhlanalysis-conda-env
 
 You should now be able to launch jupyter and see your conda environment:
 
@@ -276,8 +276,8 @@ This method makes use of the `requirements.txt` file; you can disregard the `env
 Ensure you have installed the [virtualenv tool](https://virtualenv.pypa.io/en/latest/installation.html) on your system.
 Once installed, create a new virtual environment:
 
-    virtualenv ~/ift6758-venv
-    source ~/ift6758-venv/bin/activate
+    virtualenv ~/nhlanalysis-venv
+    source ~/nhlanalysis-venv/bin/activate
 
 Install the packages from a requirements.txt file:
 
@@ -285,7 +285,7 @@ Install the packages from a requirements.txt file:
 
 As before, register the environment so jupyter can see it:
 
-    python -m ipykernel install --user --name=ift6758-venv
+    python -m ipykernel install --user --name=nhlanalysis-venv
 
 You should now be able to launch jupyter and see your conda environment:
 
@@ -298,7 +298,8 @@ If you want to create a new `requirements.txt` file, you can use `pip freeze`:
 ## How to run
 
 ### Milestones 1 and 2
-Run the code in [main.py](main.py). This will extract the data from the NHL API, then generate the graphs for visualizations.
+Run the code in [main.py](main.py). This will extract the data from the NHL API, then generate the graphs for visualizations. \
+**Note**: One model requires 'torch' to be installed, but as the model using it is not included in the Streamlit app and including it leads to extremely long build times, it is not part of requirements.txt.
 
 ### Milestone 3
 Run [Docker Compose](docker-compose.yaml) file with command ``docker-compose up`` to start the Flask server and the Streamlit app.

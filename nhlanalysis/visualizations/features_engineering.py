@@ -26,8 +26,8 @@ def shots_and_goals_by_distance(plays_df: pd.DataFrame, save: bool = True, plot:
 
     plt.close("all")
 
-    Tirs = []
-    Buts = []
+    shots = []
+    goals = []
 
     # Remove row with nan data in column "distanceToGoal"
     df = plays_df.dropna(subset=["distanceToGoal"])
@@ -40,8 +40,8 @@ def shots_and_goals_by_distance(plays_df: pd.DataFrame, save: bool = True, plot:
     for d in distinct_distances :
         # Filter dataframe according to distance
         df2 = df[df["distanceToGoal"] == d]
-        Tirs.append(len(df2[df2["event"] == "Shot"]))
-        Buts.append(len(df2[df2["event"] == "Goal"]))
+        shots.append(len(df2[df2["event"] == "Shot"]))
+        goals.append(len(df2[df2["event"] == "Goal"]))
 
     # Plot total number of shots and goals for every distances
     width = group_feet
@@ -49,12 +49,12 @@ def shots_and_goals_by_distance(plays_df: pd.DataFrame, save: bool = True, plot:
     if save or plot:
         # Create figure
         fig = plt.figure(figsize=[14, 8])
-        plt.bar(distinct_distances, Tirs, width=width, color='b', label='Non-Buts')
-        plt.bar(distinct_distances, Buts, width=0.5 * width, color='r', label='Buts')
+        plt.bar(distinct_distances, shots, width=width, color='b', label='Shots')
+        plt.bar(distinct_distances, goals, width=0.5 * width, color='r', label='Goals')
         # Add title and legends 
-        plt.title("Nombre de buts et de non-buts en fonction de la distance aux cages, de la saison 2015-2016 à 2018-2019")
-        plt.xlabel("Distance en pieds")
-        plt.ylabel("Nombre de tirs")
+        plt.title("Number of shots and goals according to distance to goal for seasons 2015-2016 to 2018-2019")
+        plt.xlabel("Distance to goal (ft)")
+        plt.ylabel("Number of shots")
         plt.legend()
 
     # Plot and save the figure (if True)
@@ -64,7 +64,7 @@ def shots_and_goals_by_distance(plays_df: pd.DataFrame, save: bool = True, plot:
         fig.savefig(path_to_save + "shots_and_goals_by_distance.png")
     if save or plot:
         plt.close()
-    return (distinct_distances, Tirs, Buts)
+    return (distinct_distances, shots, goals)
 
 
 def shots_and_goals_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: bool = True,
@@ -85,8 +85,8 @@ def shots_and_goals_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: b
 
     plt.close("all")
 
-    Tirs = []
-    Buts = []
+    shots = []
+    goals = []
 
     # Remove row with nan data in column "distanceToGoal"
     df = plays_df.dropna(subset=["angleWithGoal"])
@@ -99,8 +99,8 @@ def shots_and_goals_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: b
     for d in distinct_angles :
         # Filter dataframe according to angles
         df2 = df[df["angleWithGoal"] == d]
-        Tirs.append(len(df2[df2["event"] == "Shot"]))
-        Buts.append(len(df2[df2["event"] == "Goal"]))
+        shots.append(len(df2[df2["event"] == "Shot"]))
+        goals.append(len(df2[df2["event"] == "Goal"]))
 
     # Plot total number of shots and goals for every angles
     width = group_deg
@@ -108,12 +108,12 @@ def shots_and_goals_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: b
     if save or plot:
         # Create figure
         fig = plt.figure(figsize=[14, 8])
-        plt.bar(distinct_angles, Tirs, width=width, color='b', label='Non-Buts')
-        plt.bar(distinct_angles, Buts, width=0.5 * width, color='r', label='Buts')
+        plt.bar(distinct_angles, shots, width=width, color='b', label='Shots')
+        plt.bar(distinct_angles, goals, width=0.5 * width, color='r', label='Goals')
         # Add title and legends 
-        plt.title("Nombre de buts et de non-buts en fonction de l'angle avec les cages, de la saison 2015-2016 à 2018-2019")
-        plt.xlabel("Angle en degrés")
-        plt.ylabel("Nombre de tirs")
+        plt.title("Number of shots and goals according to angle with goal for seasons 2015-2016 to 2018-2019")
+        plt.xlabel("Angle with goal (°)")
+        plt.ylabel("Number of shots")
         plt.legend()
 
     # Plot and save the figure (if True)
@@ -123,7 +123,7 @@ def shots_and_goals_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: b
         fig.savefig(path_to_save + "shots_and_goals_by_angles.png")
     if save or plot:
         plt.close()
-    return (distinct_angles, Tirs, Buts)
+    return (distinct_angles, shots, goals)
 
 def shots_by_angles_and_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool = True,
                                           path_to_save: str = "./", group_feet: int = 6, group_deg: int = 5) -> tuple:
@@ -160,10 +160,10 @@ def shots_by_angles_and_distance(plays_df: pd.DataFrame, save: bool = True, plot
         # Create figure
         p = sns.jointplot(data=df, x="distanceToGoal", y="angleWithGoal", kind="hist", height = 8, marginal_kws=dict(bins=bins_size), joint_kws=dict(bins=bins_size))
         # Add title and legends 
-        p.fig.suptitle("Nombre de tirs en fonction de l'angle et de la distance avec les cages,\n de la saison 2015-2016 à 2018-2019")
+        p.fig.suptitle("Number of shots and goals according to distance and angle for seasons 2015-2016 to 2018-2019")
         p.fig.subplots_adjust(top=0.92) # Reduce plot to make room 
-        plt.xlabel("Distance en pieds")
-        plt.ylabel("Angle en degrés")
+        plt.xlabel("Distance to goal (ft)")
+        plt.ylabel("Angle with goal (°)")
 
     # Plot and save the figure (if True)
     if plot:
@@ -211,9 +211,9 @@ def goal_ratio_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
     if save or plot:
         fig = plt.figure(figsize=[14, 8])
         plt.bar(distinct_distances, ratio, width=group_feet)
-        plt.title(f"Pourcentage de tirs réussis en fonction de la distance, de la saison 2015-2016 à 2018-2019")
-        plt.xlabel("Distance en pieds")
-        plt.ylabel("Ratio de tirs réussis")
+        plt.title(f"Percentage of scoring shots according to distance to goal 2015-2016 to 2018-2019")
+        plt.xlabel("Distance to goal (ft)")
+        plt.ylabel("Percentage of scoring shots")
 
     # Plot and save the figure (if True)
     if plot:
@@ -262,9 +262,9 @@ def goal_ratio_by_angles(plays_df: pd.DataFrame, save: bool = True, plot: bool =
     if save or plot:
         fig = plt.figure(figsize=[14, 8])
         plt.bar(distinct_angles, ratio, width=group_deg)
-        plt.title(f"Pourcentage de tirs réussis en fonction de l'angle avec les cages, de la saison 2015-2016 à 2018-2019")
-        plt.xlabel("Angle en degrés")
-        plt.ylabel("Ratio de tirs réussis")
+        plt.title(f"Percentage of scoring shots according to angle with goal 2015-2016 to 2018-2019")
+        plt.xlabel("Angle with goal (°)")
+        plt.ylabel("Percentage of scoring shots")
 
     # Plot and save the figure (if True)
     if plot:
@@ -294,8 +294,8 @@ def empty_goal_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
 
     plt.close("all")
 
-    Buts_vide = []
-    Buts_non_vide = []
+    empty_net_goals = []
+    non_empty_net_goals = []
 
     # Replace nan values with 0
     plays_df["emptyNet"] = plays_df["emptyNet"].fillna(0)
@@ -319,12 +319,12 @@ def empty_goal_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
     for d in distinct_distances_empty :
         # Filter dataframe according to distance
         df2_empty = df_empty_goal[df_empty_goal["distanceToGoal"] == d]
-        Buts_vide.append(len(df2_empty[df2_empty["event"] == "Goal"]))
+        empty_net_goals.append(len(df2_empty[df2_empty["event"] == "Goal"]))
 
     for d in distinct_distances_not_empty :
         # Filter dataframe according to distance
         df2_not_empty = df_not_empty_goal[df_not_empty_goal["distanceToGoal"] == d]
-        Buts_non_vide.append(len(df2_not_empty[df2_not_empty["event"] == "Goal"]))
+        non_empty_net_goals.append(len(df2_not_empty[df2_not_empty["event"] == "Goal"]))
 
     # Plot total number of shots and goals for every distances
     width = group_feet
@@ -333,16 +333,16 @@ def empty_goal_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
         # Create figure
         fig = plt.figure(figsize=[14, 8])
         plt.subplot(1, 2, 1)
-        plt.bar(distinct_distances_empty, Buts_vide, width=width, color='b', label='Cage vide')
-        plt.xlabel("Distance en pieds")
-        plt.ylabel("Nombre de buts")
+        plt.bar(distinct_distances_empty, empty_net_goals, width=width, color='b', label='Empty net')
+        plt.xlabel("Distance (ft)")
+        plt.ylabel("Number of goals")
         plt.legend()
         plt.subplot(1, 2, 2)
-        plt.bar(distinct_distances_not_empty, Buts_non_vide, width=width, color='r', label='Cage protégée')
+        plt.bar(distinct_distances_not_empty, non_empty_net_goals, width=width, color='r', label='Non-empty net')
         # Add title and legends 
-        plt.suptitle("Nombre de buts en fonction de la distance avec des cages vide et protégée, de la saison 2015-2016 à 2018-2019")
-        plt.xlabel("Distance en pieds")
-        plt.ylabel("Nombre de buts")
+        plt.suptitle("Number of goals according to distance, empty and non-empty net, seasons 2015-2016 to 2018-2019")
+        plt.xlabel("Distance (ft)")
+        plt.ylabel("Number of goals")
         plt.legend()
 
     # Plot and save the figure (if True)
@@ -352,6 +352,4 @@ def empty_goal_by_distance(plays_df: pd.DataFrame, save: bool = True, plot: bool
         fig.savefig(path_to_save + "empty_goal_by_distance.png")
     if save or plot:
         plt.close()
-    return (distinct_distances_empty, Buts_vide, distinct_distances_not_empty, Buts_non_vide)
-
-
+    return (distinct_distances_empty, empty_net_goals, distinct_distances_not_empty, non_empty_net_goals)

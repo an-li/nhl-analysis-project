@@ -1,8 +1,8 @@
 import logging
 
-from ift6758.api.nhl_api_service import get_game_live_feed
-from ift6758.features.data_extractor import add_info_for_games, add_previous_event_for_shots_and_goals
-from ift6758.utilities.game_utilities import plays_to_frame
+from nhlanalysis.api.nhl_api_service import get_game_live_feed
+from nhlanalysis.features.data_extractor import add_info_for_games, add_previous_event_for_shots_and_goals
+from nhlanalysis.utilities.game_utilities import plays_to_frame
 
 columns_to_keep = ['team', 'eventIdx', 'event', 'isGoal', 'secondaryType', 'ordinalNum', 'dateTime', 'periodType',
                    'periodTime', 'periodTimeRemaining', 'secondsSinceStart', 'strength', 'emptyNet', 'x', 'y',

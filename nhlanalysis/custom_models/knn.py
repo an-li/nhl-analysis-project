@@ -10,7 +10,7 @@ from torchmetrics import ConfusionMatrix
 from torchmetrics.classification import BinaryF1Score
 from sklearn.neighbors import KNeighborsClassifier
 
-from ift6758.utilities.model_utilities import *
+from nhlanalysis.utilities.model_utilities import *
 
 
 def knn_model(df_train: pd.DataFrame, features: list, model_name: str, project_name: str, workspace: str,

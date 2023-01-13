@@ -6,7 +6,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 
 import xgboost as xgb
-from ift6758.utilities.model_utilities import *
+from nhlanalysis.utilities.model_utilities import *
 
 
 def best_hyperparameters(params: dict = {

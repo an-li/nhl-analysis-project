@@ -4,10 +4,10 @@ from datetime import datetime
 import pandas as pd
 import torch
 
-from ift6758.custom_models.knn import knn_model
-from ift6758.custom_models.mlp import mlp_model, evaluate_model
-from ift6758.custom_models.net_adam import NetAdam
-from ift6758.custom_models.net_sgd import NetSGD
+from nhlanalysis.custom_models.knn import knn_model
+from nhlanalysis.custom_models.mlp import mlp_model, evaluate_model
+from nhlanalysis.custom_models.net_adam import NetAdam
+from nhlanalysis.custom_models.net_sgd import NetSGD
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -18,17 +18,17 @@ sns.set()
 
 from sklearn.feature_selection import f_classif, mutual_info_classif
 
-from ift6758.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
-from ift6758.features.feature_engineering import log_dataframe_profile
-from ift6758.features.incorrect_feature_analysis import incorrect_feature_analysis
-from ift6758.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
-from ift6758.visualizations.features_engineering import shots_and_goals_by_distance, shots_and_goals_by_angles, \
+from nhlanalysis.features.data_extractor import extract_and_cleanup_play_data, add_previous_event_for_shots_and_goals
+from nhlanalysis.features.feature_engineering import log_dataframe_profile
+from nhlanalysis.features.incorrect_feature_analysis import incorrect_feature_analysis
+from nhlanalysis.visualizations.advanced_visualizations import generate_interactive_shot_map, generate_static_shot_map
+from nhlanalysis.visualizations.features_engineering import shots_and_goals_by_distance, shots_and_goals_by_angles, \
     shots_by_angles_and_distance, goal_ratio_by_distance, goal_ratio_by_angles, empty_goal_by_distance
-from ift6758.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
+from nhlanalysis.visualizations.simple_visualizations import shots_efficiency_by_type, shots_efficiency_by_distance, \
     shots_efficiency_by_type_and_distance
-from ift6758.baseline.baseline import baseline_models
-from ift6758.xgboost.xgboost import best_hyperparameters, xgboost_model
-from ift6758.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration, \
+from nhlanalysis.baseline.baseline import baseline_models
+from nhlanalysis.xgboost.xgboost import best_hyperparameters, xgboost_model
+from nhlanalysis.utilities.model_utilities import roc_auc_curve, goal_rate_curve, goal_rate_cumulative_curve, calibration, \
     download_model_from_comet, filter_and_one_hot_encode_features, split_data_and_labels, load_model_from_file
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     start_date = datetime(2015, 10, 7)  # Start of 2015-2016
     end_date = datetime(2021, 7, 7)  # End of 2020-2021
 
-    outdir = 'ift6758/data/extracted'
+    outdir = 'nhlanalysis/data/extracted'
     if not os.path.exists(outdir):
         os.makedirs(outdir, exist_ok=True)
     filename = f'all_events_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.csv'

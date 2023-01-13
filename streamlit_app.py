@@ -10,10 +10,10 @@ import streamlit as st
 import streamlit.logger
 from PIL import Image
 
-from ift6758.clients.game_client import GameClient
-from ift6758.logging.logger import Logger
-from ift6758.utilities.game_utilities import generate_shot_map_matrix
-from ift6758.visualizations.advanced_visualizations import create_dropdown
+from nhlanalysis.clients.game_client import GameClient
+from nhlanalysis.logging.logger import Logger
+from nhlanalysis.utilities.game_utilities import generate_shot_map_matrix
+from nhlanalysis.visualizations.advanced_visualizations import create_dropdown
 
 # Logging setup
 streamlit.logger.get_logger = logging.getLogger

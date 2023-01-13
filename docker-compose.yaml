@@ -6,7 +6,7 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile.serving
-    image: ift6758/serving
+    image: nhlanalysis/serving
     ports:
       - "8080:8080"
     environment:
@@ -16,7 +16,7 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile.streamlit
-    image: ift6758/streamlit
+    image: nhlanalysis/streamlit
     ports:
       - "8081:8081"
     environment:

@@ -29,14 +29,14 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
 
     # Obtain a list of shots types 
     distinct_shot = list(set(df["shotType"]))
-    Tirs = []
-    Buts = []
+    shots = []
+    goals = []
 
     # Count number of shots and goals for every type 
     for shot in distinct_shot:
         df2 = df[df["shotType"] == shot]
-        Tirs.append(len(df2))
-        Buts.append(len(df2[df2["event"] == "Goal"]))
+        shots.append(len(df2))
+        goals.append(len(df2[df2["event"] == "Goal"]))
 
     # Plot total number of shots and goals for every type of shot 
     X_axis = np.arange(len(distinct_shot))
@@ -45,16 +45,16 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
     if save or plot:
         # Create figure
         fig = plt.figure(figsize=[14, 8])
-        plt.bar(X_axis, Tirs, width=width, color='b', label='Tirs')
-        plt.bar(X_axis, Buts, width=0.5 * width, color='r', label='Buts')
+        plt.bar(X_axis, shots, width=width, color='b', label='Shots')
+        plt.bar(X_axis, goals, width=0.5 * width, color='r', label='Goals')
 
     for i in X_axis:
         # Add % of goals for every type of shot on the bar 
-        plt.text(i - 2 / 5 * width, Tirs[i] + max(Tirs) / 100, str(round(Buts[i] / Tirs[i] * 100, 2)) + "% goal")
+        plt.text(i - 2 / 5 * width, shots[i] + max(shots) / 100, str(round(goals[i] / shots[i] * 100, 2)) + "% goal")
 
     if save or plot:
         # Add title and legends 
-        plt.title("Nombre de tirs et de buts en fonction du type de tirs")
+        plt.title("Shots and goal according to shot type")
         plt.xticks(X_axis, distinct_shot)
         plt.legend()
 
@@ -65,7 +65,7 @@ def shots_efficiency_by_type(plays_df: pd.DataFrame, season: int, save: bool = T
         fig.savefig(path_to_save + f"shot_efficiency_according_to_type{str(season)[0:4]}_{str(season)[4:8]}.png")
     if save or plot:
         plt.close()
-    return (distinct_shot, Tirs, Buts)
+    return (distinct_shot, shots, goals)
 
 
 def shots_efficiency_by_distance(plays_df: pd.DataFrame, seasons_list: list, save: bool = True, plot: bool = True,
@@ -117,10 +117,10 @@ def shots_efficiency_by_distance(plays_df: pd.DataFrame, seasons_list: list, sav
         if save or plot:
             fig = plt.figure(figsize=[14, 8])
             plt.bar(distinct_distances_for_season, ratio_for_season, width=group_feet)
-            plt.title(f"Pourcentage de tirs réussis en fonction de la distance pour la saison "
+            plt.title(f"Percentage of scoring shots according to distance for season "
                       f"{str(season)[0:4]}-{str(season)[4:8]}")
-            plt.xlabel("Distance en pieds")
-            plt.ylabel("Ratio de tirs réussis")
+            plt.xlabel("Distance (ft)")
+            plt.ylabel("Percentage of scoring shots")
 
         # Plot and save the figure (if True)
         if plot:
@@ -180,10 +180,10 @@ def shots_efficiency_by_type_and_distance(plays_df: pd.DataFrame, season: int, s
         if save or plot:
             # Create graphics
             ax[count // 2, count % 2].bar(x, y, label=shot, width=group_feet)
-            ax[count // 2, count % 2].title.set_text(f"Pourcentage de tirs réussis en fonction de la distance pour la "
-                                                     f"saison {str(season)[0:4]}-{str(season)[4:8]}")
-            ax[count // 2, count % 2].set_xlabel("Distance en pieds")
-            ax[count // 2, count % 2].set_ylabel("Ratio de tirs réussis")
+            ax[count // 2, count % 2].title.set_text(f"Percentage of scoring shots according to shot type and distance "
+                                                     f"for season {str(season)[0:4]}-{str(season)[4:8]}")
+            ax[count // 2, count % 2].set_xlabel("Distance (ft)")
+            ax[count // 2, count % 2].set_ylabel("Percentage of scoring shots")
             ax[count // 2, count % 2].legend()
         count += 1
 
