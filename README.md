@@ -27,8 +27,7 @@ You should see something similar to the following output:
 ## Docker
 
 Follow the instructions [here](https://docs.docker.com/get-docker/) to install Docker on your system.
-Included in this repo is a Dockerfile with brief explanations of the commands you will need to use
-to use to define your Docker image.
+Included in this repo is a Dockerfile with brief explanations of the commands you will need to use to define your Docker image.
 One thing to note is that its generally a better idea to stick to using `pip` instead of Conda
 environments in Docker containers, as this approach is generally more lightweight than Conda.
 A common pattern is to copy the `requirements.txt` file into the docker container and then simply 
